@@ -24,13 +24,17 @@ export function getMazeObstacles(): Position[] {
     { x: 15, y: 9 }, { x: 15, y: 10 },  // right gap
   ]
 
-  // Center cross
-  for (let i = 8; i <= 11; i++) {
-    obstacles.push({ x: i, y: 9 })
-    obstacles.push({ x: i, y: 10 })
-    obstacles.push({ x: 9, y: i })
-    obstacles.push({ x: 10, y: i })
-  }
+  // Center cross (single-width arms with open center)
+  // Horizontal bar
+  obstacles.push({ x: 7, y: 10 })
+  obstacles.push({ x: 8, y: 10 })
+  obstacles.push({ x: 11, y: 10 })
+  obstacles.push({ x: 12, y: 10 })
+  // Vertical bar
+  obstacles.push({ x: 10, y: 7 })
+  obstacles.push({ x: 10, y: 8 })
+  obstacles.push({ x: 10, y: 11 })
+  obstacles.push({ x: 10, y: 12 })
 
   // Remove center duplicates and gap positions
   const gapSet = new Set(gapPositions.map((p) => `${p.x},${p.y}`))

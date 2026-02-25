@@ -8,11 +8,8 @@ import {
   generateChaosObstacle,
 } from "@/lib/map-obstacles"
 
-const CELL_SIZE = 20
 const GRID_WIDTH = 20
 const GRID_HEIGHT = 20
-const CANVAS_WIDTH = CELL_SIZE * GRID_WIDTH
-const CANVAS_HEIGHT = CELL_SIZE * GRID_HEIGHT
 
 type Direction = "UP" | "DOWN" | "LEFT" | "RIGHT"
 type Position = { x: number; y: number }
@@ -39,11 +36,57 @@ function getInitialObstacles(mapId: MapId): Position[] {
 
 function getObstacleColor(mapId: MapId): string {
   switch (mapId) {
-    case "maze": return "#ffaa00"
-    case "gauntlet": return "#ff4757"
-    case "chaos": return "#c850c0"
-    default: return "#ff4757"
+    case "maze":
+      return "#ffaa00"
+    case "gauntlet":
+      return "#ff4757"
+    case "chaos":
+      return "#c850c0"
+    default:
+      return "#ff4757"
   }
+}
+
+/** Find a safe spawn position that isn't inside an obstacle */
+function getSafeSpawn(mapId: MapId, obstacles: Position[]): Position {
+  const occupied = new Set(obstacles.map((o) => `${o.x},${o.y}`))
+
+  // Per-map preferred spawns
+  const preferred: Position[] = (() => {
+    switch (mapId) {
+      case "maze":
+        // Top-left open area, away from the inner frame (starts at x:4)
+        return [
+          { x: 2, y: 2 },
+          { x: 1, y: 1 },
+          { x: 2, y: 1 },
+          { x: 1, y: 2 },
+          { x: 3, y: 2 },
+        ]
+      case "gauntlet":
+        // Above first barrier (row 4), horizontally centred
+        return [
+          { x: 10, y: 2 },
+          { x: 8, y: 2 },
+          { x: 12, y: 2 },
+        ]
+      default:
+        return [{ x: 10, y: 10 }]
+    }
+  })()
+
+  for (const p of preferred) {
+    if (!occupied.has(`${p.x},${p.y}`)) return p
+  }
+
+  // Fallback: scan for any free cell
+  for (let y = 0; y < GRID_HEIGHT; y++) {
+    for (let x = 0; x < GRID_WIDTH; x++) {
+      if (!occupied.has(`${x},${y}`)) return { x, y }
+    }
+  }
+
+  return { x: 0, y: 0 }
 }
 
 export function SnakeGame({
@@ -55,7 +98,9 @@ export function SnakeGame({
   setIsRunning,
 }: SnakeGameProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
   const [gameState, setGameState] = useState<"idle" | "playing" | "gameover">("idle")
+  const [canvasSize, setCanvasSize] = useState(400)
   const snakeRef = useRef<Position[]>([{ x: 10, y: 10 }])
   const directionRef = useRef<Direction>("RIGHT")
   const nextDirectionRef = useRef<Direction>("RIGHT")
@@ -64,6 +109,26 @@ export function SnakeGame({
   const speedRef = useRef(150)
   const gameLoopRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const obstaclesRef = useRef<Position[]>([])
+
+  // Responsive canvas sizing
+  useEffect(() => {
+    function updateSize() {
+      const vw = window.innerWidth
+      const vh = window.innerHeight
+      // Leave room for header/controls: use min of (vw - 32px padding, vh - 340px for UI, 400)
+      const maxW = vw - 32
+      const maxH = vh - 340
+      const size = Math.min(maxW, maxH, 400)
+      // Snap to grid so cells are whole pixels
+      const cellSize = Math.floor(size / GRID_WIDTH)
+      setCanvasSize(cellSize * GRID_WIDTH)
+    }
+    updateSize()
+    window.addEventListener("resize", updateSize)
+    return () => window.removeEventListener("resize", updateSize)
+  }, [])
+
+  const cellSize = canvasSize / GRID_WIDTH
 
   const isObstacle = useCallback((x: number, y: number) => {
     return obstaclesRef.current.some((o) => o.x === x && o.y === y)
@@ -87,19 +152,14 @@ export function SnakeGame({
   }, [])
 
   const resetGame = useCallback(() => {
-    // Find a safe spawn for the snake based on map
-    let spawnX = 10
-    let spawnY = 10
-    if (mapId === "gauntlet") {
-      spawnX = 10
-      spawnY = 2 // Above first barrier
-    }
-    snakeRef.current = [{ x: spawnX, y: spawnY }]
+    const obs = getInitialObstacles(mapId)
+    obstaclesRef.current = obs
+    const spawn = getSafeSpawn(mapId, obs)
+    snakeRef.current = [spawn]
     directionRef.current = "RIGHT"
     nextDirectionRef.current = "RIGHT"
     scoreRef.current = 0
     speedRef.current = 150
-    obstaclesRef.current = getInitialObstacles(mapId)
     generateFood()
     onScoreChange(0)
   }, [generateFood, onScoreChange, mapId])
@@ -110,23 +170,25 @@ export function SnakeGame({
     const ctx = canvas.getContext("2d")
     if (!ctx) return
 
+    const cs = cellSize
+
     // Background
     ctx.fillStyle = "#0d0d24"
-    ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
+    ctx.fillRect(0, 0, canvasSize, canvasSize)
 
     // Grid lines
     ctx.strokeStyle = "rgba(57, 255, 120, 0.04)"
     ctx.lineWidth = 0.5
     for (let x = 0; x <= GRID_WIDTH; x++) {
       ctx.beginPath()
-      ctx.moveTo(x * CELL_SIZE, 0)
-      ctx.lineTo(x * CELL_SIZE, CANVAS_HEIGHT)
+      ctx.moveTo(x * cs, 0)
+      ctx.lineTo(x * cs, canvasSize)
       ctx.stroke()
     }
     for (let y = 0; y <= GRID_HEIGHT; y++) {
       ctx.beginPath()
-      ctx.moveTo(0, y * CELL_SIZE)
-      ctx.lineTo(CANVAS_WIDTH, y * CELL_SIZE)
+      ctx.moveTo(0, y * cs)
+      ctx.lineTo(canvasSize, y * cs)
       ctx.stroke()
     }
 
@@ -135,7 +197,7 @@ export function SnakeGame({
       ctx.strokeStyle = "rgba(0, 212, 255, 0.3)"
       ctx.lineWidth = 2
       ctx.setLineDash([6, 4])
-      ctx.strokeRect(1, 1, CANVAS_WIDTH - 2, CANVAS_HEIGHT - 2)
+      ctx.strokeRect(1, 1, canvasSize - 2, canvasSize - 2)
       ctx.setLineDash([])
     }
 
@@ -147,13 +209,7 @@ export function SnakeGame({
       ctx.fillStyle = obsColor
       ctx.globalAlpha = 0.7
       ctx.beginPath()
-      ctx.roundRect(
-        o.x * CELL_SIZE + 1,
-        o.y * CELL_SIZE + 1,
-        CELL_SIZE - 2,
-        CELL_SIZE - 2,
-        2
-      )
+      ctx.roundRect(o.x * cs + 1, o.y * cs + 1, cs - 2, cs - 2, 2)
       ctx.fill()
       ctx.shadowBlur = 0
       ctx.globalAlpha = 1
@@ -166,9 +222,9 @@ export function SnakeGame({
     ctx.fillStyle = "#ff4757"
     ctx.beginPath()
     ctx.arc(
-      food.x * CELL_SIZE + CELL_SIZE / 2,
-      food.y * CELL_SIZE + CELL_SIZE / 2,
-      CELL_SIZE / 2 - 2,
+      food.x * cs + cs / 2,
+      food.y * cs + cs / 2,
+      cs / 2 - 2,
       0,
       Math.PI * 2
     )
@@ -192,34 +248,36 @@ export function SnakeGame({
       const padding = isHead ? 1 : 2
       ctx.beginPath()
       ctx.roundRect(
-        segment.x * CELL_SIZE + padding,
-        segment.y * CELL_SIZE + padding,
-        CELL_SIZE - padding * 2,
-        CELL_SIZE - padding * 2,
+        segment.x * cs + padding,
+        segment.y * cs + padding,
+        cs - padding * 2,
+        cs - padding * 2,
         isHead ? 4 : 3
       )
       ctx.fill()
       ctx.shadowBlur = 0
     })
 
-    // Eyes
+    // Eyes on head
     if (snake.length > 0) {
       const head = snake[0]
       const dir = directionRef.current
       ctx.fillStyle = "#0d0d24"
-      const eyeSize = 3
-      const cx = head.x * CELL_SIZE + CELL_SIZE / 2
-      const cy = head.y * CELL_SIZE + CELL_SIZE / 2
+      const eyeSize = Math.max(2, cs * 0.15)
+      const cx = head.x * cs + cs / 2
+      const cy = head.y * cs + cs / 2
+      const offset1 = cs * 0.15
+      const offset2 = cs * 0.2
       let eye1x: number, eye1y: number, eye2x: number, eye2y: number
 
       if (dir === "RIGHT") {
-        eye1x = cx + 3; eye1y = cy - 4; eye2x = cx + 3; eye2y = cy + 4
+        eye1x = cx + offset1; eye1y = cy - offset2; eye2x = cx + offset1; eye2y = cy + offset2
       } else if (dir === "LEFT") {
-        eye1x = cx - 3; eye1y = cy - 4; eye2x = cx - 3; eye2y = cy + 4
+        eye1x = cx - offset1; eye1y = cy - offset2; eye2x = cx - offset1; eye2y = cy + offset2
       } else if (dir === "UP") {
-        eye1x = cx - 4; eye1y = cy - 3; eye2x = cx + 4; eye2y = cy - 3
+        eye1x = cx - offset2; eye1y = cy - offset1; eye2x = cx + offset2; eye2y = cy - offset1
       } else {
-        eye1x = cx - 4; eye1y = cy + 3; eye2x = cx + 4; eye2y = cy + 3
+        eye1x = cx - offset2; eye1y = cy + offset1; eye2x = cx + offset2; eye2y = cy + offset1
       }
 
       ctx.beginPath()
@@ -229,7 +287,7 @@ export function SnakeGame({
       ctx.arc(eye2x, eye2y, eyeSize, 0, Math.PI * 2)
       ctx.fill()
     }
-  }, [mapId])
+  }, [mapId, canvasSize, cellSize])
 
   const gameStep = useCallback(() => {
     directionRef.current = nextDirectionRef.current
@@ -243,7 +301,7 @@ export function SnakeGame({
       case "RIGHT": head.x += 1; break
     }
 
-    // Wall handling based on map
+    // Wall handling
     if (mapId === "portal") {
       head.x = (head.x + GRID_WIDTH) % GRID_WIDTH
       head.y = (head.y + GRID_HEIGHT) % GRID_HEIGHT
@@ -279,7 +337,6 @@ export function SnakeGame({
       scoreRef.current += 10
       onScoreChange(scoreRef.current)
 
-      // Chaos mode: spawn new obstacles
       if (mapId === "chaos") {
         const newObs = generateChaosObstacle(
           snake,
@@ -347,7 +404,7 @@ export function SnakeGame({
     return () => window.removeEventListener("keydown", handleKeyDown)
   }, [gameState, startGame])
 
-  // Initial draw
+  // Initial draw + redraw on resize
   useEffect(() => {
     obstaclesRef.current = getInitialObstacles(mapId)
     draw()
@@ -374,7 +431,7 @@ export function SnakeGame({
   )
 
   return (
-    <div className="flex flex-col items-center gap-6">
+    <div ref={containerRef} className="flex flex-col items-center gap-4 w-full">
       {/* Canvas */}
       <div className="relative">
         <div
@@ -386,9 +443,10 @@ export function SnakeGame({
         >
           <canvas
             ref={canvasRef}
-            width={CANVAS_WIDTH}
-            height={CANVAS_HEIGHT}
+            width={canvasSize}
+            height={canvasSize}
             className="block"
+            style={{ width: canvasSize, height: canvasSize }}
           />
         </div>
 
@@ -397,26 +455,26 @@ export function SnakeGame({
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/80 backdrop-blur-sm rounded-lg">
             {gameState === "gameover" && (
               <p
-                className="font-sans text-xl text-destructive mb-2"
+                className="font-sans text-lg md:text-xl text-destructive mb-2"
                 style={{ textShadow: "0 0 20px rgba(255, 71, 87, 0.5)" }}
               >
                 GAME OVER
               </p>
             )}
-            <p className="font-sans text-primary text-[10px] mb-6">
+            <p className="font-sans text-primary text-[10px] mb-4 md:mb-6">
               {gameState === "gameover"
                 ? `Score: ${scoreRef.current}`
                 : "READY?"}
             </p>
             <button
               onClick={startGame}
-              className="px-6 py-3 bg-primary text-primary-foreground font-sans text-xs rounded-lg transition-all hover:scale-105"
+              className="px-5 py-2.5 md:px-6 md:py-3 bg-primary text-primary-foreground font-sans text-[10px] md:text-xs rounded-lg transition-all hover:scale-105 active:scale-95"
               style={{ boxShadow: "0 0 20px rgba(57, 255, 120, 0.3)" }}
             >
               {gameState === "gameover" ? "PLAY AGAIN" : "START"}
             </button>
             {gameState === "idle" && (
-              <p className="font-mono text-muted-foreground text-xs mt-4">
+              <p className="font-mono text-muted-foreground text-[10px] mt-3 md:mt-4 hidden md:block">
                 Press Space or Enter
               </p>
             )}
