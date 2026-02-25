@@ -13,10 +13,7 @@ const SnakeGame = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div
-        className="flex items-center justify-center rounded-lg border-2 border-primary/30"
-        style={{ width: 400, height: 400 }}
-      >
+      <div className="flex items-center justify-center rounded-lg border-2 border-primary/30 w-full max-w-[400px] aspect-square">
         <p className="font-mono text-xs text-muted-foreground animate-pulse">
           Loading game...
         </p>
@@ -53,7 +50,7 @@ export function SnakeGameClient({ mapId, mapInfo }: SnakeGameClientProps) {
   }, [])
 
   return (
-    <main className="min-h-screen bg-background flex flex-col items-center px-4 py-8 gap-6 relative">
+    <main className="min-h-dvh bg-background flex flex-col items-center px-4 py-4 sm:py-8 gap-4 sm:gap-6 relative">
       {/* Scan lines */}
       <div
         className="fixed inset-0 pointer-events-none z-10 opacity-[0.03]"

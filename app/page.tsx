@@ -40,7 +40,7 @@ const jsonLd = {
 
 export default function DashboardPage() {
   return (
-    <main className="min-h-screen bg-background flex flex-col items-center px-4 py-12 gap-10 relative">
+    <main className="min-h-dvh bg-background flex flex-col items-center px-4 py-8 sm:py-12 gap-8 sm:gap-10 relative">
       <JsonLd data={jsonLd} />
 
       {/* Scan lines overlay */}
@@ -54,9 +54,9 @@ export default function DashboardPage() {
       />
 
       {/* Header */}
-      <header className="text-center">
+      <header className="text-center px-2">
         <h1
-          className="font-sans text-3xl md:text-5xl text-primary tracking-wider"
+          className="font-sans text-xl sm:text-3xl md:text-5xl text-primary tracking-wider text-balance"
           style={{
             textShadow:
               "0 0 30px rgba(57, 255, 120, 0.4), 0 0 60px rgba(57, 255, 120, 0.15)",
@@ -64,7 +64,7 @@ export default function DashboardPage() {
         >
           NDL ARCADE
         </h1>
-        <p className="font-mono text-xs text-muted-foreground mt-3">
+        <p className="font-mono text-[10px] sm:text-xs text-muted-foreground mt-3">
           {"// choose a game to play"}
         </p>
       </header>
