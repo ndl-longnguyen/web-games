@@ -4,16 +4,16 @@ import { GameCard } from "@/components/game-card"
 import { JsonLd } from "@/components/json-ld"
 
 export const metadata: Metadata = {
-  title: "NDL Arcade - Free Online Retro Games | Snake, Tetris & More",
+  title: "NDL Arcade - Classic Retro Games Collection | Free Online",
   description:
-    "Play free retro arcade games online. Choose from Snake with 5 unique maps, and more classic games coming soon. Choi game arcade co dien mien phi, game ran san moi online.",
+    "A collection of free online retro arcade games. Play Snake with 5 unique maps, and stay tuned for Tetris, Pong, and Space Invaders. Chơi game arcade cổ điển: Rắn săn mồi và nhiều trò chơi hấp dẫn khác.",
   alternates: {
     canonical: "/",
   },
   openGraph: {
-    title: "NDL Arcade - Free Online Retro Games",
+    title: "NDL Arcade - Free Online Retro Games Collection",
     description:
-      "Play free retro arcade games online. Snake game with 5 unique maps. Choi game ran san moi, game arcade co dien truc tuyen.",
+      "Play classic arcade games online for free. Snake, Tetris, Pong, and more. Chơi game rắn săn mồi và game arcade cổ điển trực tuyến miễn phí.",
     url: "/",
   },
 }
@@ -23,7 +23,7 @@ const jsonLd = {
   "@type": "WebApplication",
   name: "NDL Arcade",
   description:
-    "Free online retro arcade game collection. Play Snake and more classic games in your browser.",
+    "Free online arcade game collection including Snake, Tetris, Pong, and classic retro games.",
   applicationCategory: "GameApplication",
   operatingSystem: "Any",
   offers: {

@@ -5,26 +5,26 @@ import { MapCard } from "@/components/map-card"
 import { JsonLd } from "@/components/json-ld"
 
 export const metadata: Metadata = {
-  title: "Snake Game - Choose Your Map",
+  title: "Snake Game Online - 5 Unique Levels & Maps | NDL Arcade",
   description:
-    "Play Snake with 5 unique maps: Classic, Portal Walls, Maze Runner, The Gauntlet, and Random Chaos. Free online snake game. Choi game ran san moi voi nhieu ban do khac nhau.",
+    "Play Snake online with 5 unique maps: Classic, Portal Walls, Maze Runner, The Gauntlet, and Random Chaos. Free retro arcade experience. Chơi game rắn săn mồi online với nhiều bản đồ đa dạng.",
   keywords: [
-    "snake game maps",
+    "snake game online",
+    "play snake free",
+    "snake game levels",
     "snake game portal walls",
-    "snake maze game",
-    "snake obstacle game",
-    "game ran san moi ban do",
-    "game ran xuyen tuong",
-    "game ran chuong ngai vat",
-    "game ran me cung",
+    "snake maze challenge",
+    "game rắn săn mồi online",
+    "rắn săn mồi xuyên tường",
+    "thử thách rắn săn mồi",
   ],
   alternates: {
     canonical: "/games/snake",
   },
   openGraph: {
-    title: "Snake Game - 5 Unique Maps to Play",
+    title: "Snake Game Online - Play with 5 Unique Maps",
     description:
-      "Classic, Portal Walls, Maze Runner, The Gauntlet, Random Chaos. Pick your challenge! Chon ban do va choi game ran san moi mien phi.",
+      "Challenge yourself with 5 unique Snake maps. Classic, Portal, Maze, and more. Chơi game rắn săn mồi miễn phí với nhiều cấp độ hấp dẫn.",
     url: "/games/snake",
   },
 }
