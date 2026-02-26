@@ -19,6 +19,8 @@ interface SnakeGameProps {
   onScoreChange: (score: number) => void
   onGameOver: (score: number) => void
   onGameStart: () => void
+  /** If provided, called before starting. Return false to block start. */
+  canStart?: () => boolean
   isRunning: boolean
   setIsRunning: (running: boolean) => void
 }
@@ -94,6 +96,7 @@ export function SnakeGame({
   onScoreChange,
   onGameOver,
   onGameStart,
+  canStart,
   isRunning,
   setIsRunning,
 }: SnakeGameProps) {
@@ -357,12 +360,16 @@ export function SnakeGame({
   }, [draw, generateFood, onGameOver, onScoreChange, setIsRunning, mapId, isObstacle])
 
   const startGame = useCallback(() => {
+    if (canStart && !canStart()) {
+      onGameStart() // triggers registration modal
+      return
+    }
     resetGame()
     setGameState("playing")
     setIsRunning(true)
     onGameStart()
     draw()
-  }, [resetGame, setIsRunning, onGameStart, draw])
+  }, [resetGame, setIsRunning, onGameStart, canStart, draw])
 
   // Game loop
   useEffect(() => {
