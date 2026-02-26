@@ -14,12 +14,7 @@ async function getLeaderboard(
     const blobPath = getBlobPath(game, mapId)
     const blob = await head(blobPath)
     if (blob) {
-      const res = await fetch(blob.url, {
-        cache: "no-store",
-        headers: {
-          Authorization: `Bearer ${process.env.BLOB_READ_WRITE_TOKEN}`,
-        },
-      })
+      const res = await fetch(blob.url, { cache: "no-store" })
       return (await res.json()) as LeaderboardData
     }
   } catch {
@@ -35,8 +30,7 @@ async function saveLeaderboard(
 ) {
   const blobPath = getBlobPath(game, mapId)
   await put(blobPath, JSON.stringify(data), {
-    access: "private",
-    token: process.env.BLOB_READ_WRITE_TOKEN,
+    access: "public",
     addRandomSuffix: false,
   })
 }

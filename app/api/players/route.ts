@@ -9,12 +9,7 @@ async function getRegistry(): Promise<PlayerRegistry> {
   try {
     const blob = await head(PLAYERS_BLOB_PATH)
     if (blob) {
-      const res = await fetch(blob.url, {
-        cache: "no-store",
-        headers: {
-          Authorization: `Bearer ${process.env.BLOB_READ_WRITE_TOKEN}`,
-        },
-      })
+      const res = await fetch(blob.url, { cache: "no-store" })
       return (await res.json()) as PlayerRegistry
     }
   } catch {
@@ -25,8 +20,7 @@ async function getRegistry(): Promise<PlayerRegistry> {
 
 async function saveRegistry(registry: PlayerRegistry) {
   await put(PLAYERS_BLOB_PATH, JSON.stringify(registry), {
-    access: "private",
-    token: process.env.BLOB_READ_WRITE_TOKEN,
+    access: "public",
     addRandomSuffix: false,
   })
 }
