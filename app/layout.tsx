@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from 'next'
 import { Press_Start_2P, Geist_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { SpeedInsights } from '@vercel/speed-insights/next'
+import { PlayerProvider } from '@/components/player-provider'
+import { PlayerRegistration } from '@/components/player-registration'
 import './globals.css'
 
 const _pressStart = Press_Start_2P({
@@ -125,7 +127,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${_pressStart.variable} font-mono antialiased`}>
-        {children}
+        <PlayerProvider>
+          <PlayerRegistration />
+          {children}
+        </PlayerProvider>
         <Analytics />
         <SpeedInsights />
       </body>
