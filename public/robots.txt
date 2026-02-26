@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+
+# Sitemap reference
+Sitemap: https://game-online-free.vercel.app/sitemap.xml
+
+# If you want to temporarily disallow indexing (e.g., staging), uncomment below and block
+# User-agent: *
+# Disallow: /

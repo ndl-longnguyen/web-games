@@ -16,7 +16,7 @@ const _geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://ndl-arcade.vercel.app'),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://game-online-free.vercel.app'),
   title: {
     default: 'NDL Arcade - Free Online Retro Games | Snake Game & More',
     template: '%s | NDL Arcade',
