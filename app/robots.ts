@@ -1,6 +1,6 @@
 import type { MetadataRoute } from 'next'
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://ndl-arcade.vercel.app'
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://game-online-free.vercel.app'
 
 export default function robots(): MetadataRoute.Robots {
   return {

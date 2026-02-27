@@ -15,6 +15,14 @@ export const metadata: Metadata = {
     description:
       "Play classic arcade games online for free. Snake, Tetris, Pong, and more. Chơi game rắn săn mồi và game arcade cổ điển trực tuyến miễn phí.",
     url: "/",
+    images: [
+      {
+        url: '/android-chrome-512x512.png',
+        width: 512,
+        height: 512,
+        alt: 'NDL Arcade Games Collection',
+      },
+    ],
   },
 }
 

@@ -26,6 +26,14 @@ export const metadata: Metadata = {
     description:
       "Challenge yourself with 5 unique Snake maps. Classic, Portal, Maze, and more. Chơi game rắn săn mồi miễn phí với nhiều cấp độ hấp dẫn.",
     url: "/games/snake",
+    images: [
+      {
+        url: '/android-chrome-512x512.png',
+        width: 512,
+        height: 512,
+        alt: 'Snake Game - 5 Unique Maps',
+      },
+    ],
   },
 }
 

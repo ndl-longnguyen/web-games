@@ -73,6 +73,14 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       title: `${seo.titleEn} - NDL Arcade`,
       description: `${seo.descEn} ${seo.descVi}`,
       url: `/games/snake/${mapId}`,
+      images: [
+        {
+          url: '/android-chrome-512x512.png',
+          width: 512,
+          height: 512,
+          alt: `${seo.titleEn}`,
+        },
+      ],
     },
   }
 }

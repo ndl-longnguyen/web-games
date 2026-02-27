@@ -20,7 +20,7 @@ const _geistMono = Geist_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://game-online-free.vercel.app'),
   title: {
-    default: 'NDL Arcade - Play Free Web Games | Snake, Tetris, Pong & More',
+    default: 'NDL Arcade - Free Online Games',
     template: '%s | NDL Arcade',
   },
   description:
@@ -92,13 +92,22 @@ export const metadata: Metadata = {
     title: 'NDL Arcade - Free Online Retro Games | Snake Game & More',
     description:
       'Play free retro arcade games online. Snake game with 5 unique maps including Portal Walls, Maze Runner, and Random Chaos. Choi game ran san moi mien phi.',
+    images: [
+      {
+        url: '/android-chrome-512x512.png',
+        width: 512,
+        height: 512,
+        alt: 'NDL Arcade - Free Online Games',
+      },
+    ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'NDL Arcade - Free Online Retro Games',
+    title: 'NDL Arcade - Free Online Games',
     description:
       'Play Snake with 5 unique maps. Free retro arcade games in your browser.',
     creator: '@NDL',
+    images: ['/android-chrome-512x512.png'],
   },
   alternates: {
     canonical: '/',
@@ -109,6 +118,9 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
+      { url: '/favicon.ico', sizes: 'any' },
+      { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
+      { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
       {
         url: '/favicon-32x32.png',
         media: '(prefers-color-scheme: light)',
@@ -119,7 +131,8 @@ export const metadata: Metadata = {
       },
       {
         url: '/android-chrome-192x192.png',
-        type: 'image/svg+xml',
+        sizes: '192x192',
+        type: 'image/png',
       },
     ],
     apple: '/apple-touch-icon.png',
