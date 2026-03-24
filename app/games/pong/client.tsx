@@ -6,17 +6,17 @@ import Link from "next/link"
 import { GameHeader } from "@/components/game-header"
 import { Leaderboard } from "@/components/leaderboard"
 import { usePlayer } from "@/components/player-provider"
-import { AI_CONFIGS } from "@/components/pong-game"
+import { LEVEL_CONFIGS } from "@/components/breakout-game"
 
-const PongGame = dynamic(
+const BreakoutGame = dynamic(
   () =>
-    import("@/components/pong-game").then((mod) => ({
-      default: mod.PongGame,
+    import("@/components/breakout-game").then((mod) => ({
+      default: mod.BreakoutGame,
     })),
   {
     ssr: false,
     loading: () => (
-      <div className="flex items-center justify-center rounded-lg border-2 border-primary/30 w-[400px] h-[300px]">
+      <div className="flex items-center justify-center rounded-lg border-2 border-primary/30 w-[400px] h-[500px]">
         <p className="font-mono text-xs text-muted-foreground animate-pulse">
           Loading game...
         </p>
@@ -27,41 +27,43 @@ const PongGame = dynamic(
 
 export function PongGameClient() {
   const { player, isRegistered, setShowRegistration } = usePlayer()
-  const [playerScore, setPlayerScore] = useState(0)
-  const [aiScore, setAiScore] = useState(0)
-  const [wins, setWins] = useState(0)
-  const [aiLevel, setAiLevel] = useState(1)
+  const [score, setScore] = useState(0)
+  const [lives, setLives] = useState(5)
+  const [highScore, setHighScore] = useState(0)
+  const [selectedLevel, setSelectedLevel] = useState(1)
+  const [currentLevel, setCurrentLevel] = useState(1)
   const [isRunning, setIsRunning] = useState(false)
   const [leaderboardKey, setLeaderboardKey] = useState(0)
   const [showLevelSelect, setShowLevelSelect] = useState(true)
 
-  const handleScoreChange = useCallback((newPlayerScore: number, newAiScore: number) => {
-    setPlayerScore(newPlayerScore)
-    setAiScore(newAiScore)
+  const handleScoreChange = useCallback((newScore: number) => {
+    setScore(newScore)
+    if (newScore > highScore) {
+      setHighScore(newScore)
+    }
+  }, [highScore])
+
+  const handleLivesChange = useCallback((newLives: number) => {
+    setLives(newLives)
   }, [])
 
   const handleGameOver = useCallback(
-    async (finalPlayerScore: number) => {
-      // Player wins if they reached win score
-      const won = finalPlayerScore >= 11
+    async (finalScore: number, level: number, won: boolean) => {
       setShowLevelSelect(true)
+      setCurrentLevel(level)
 
-      if (won) {
-        setWins((w) => w + 1)
-      }
-
-      // Submit score to leaderboard (wins count as score with difficulty multiplier)
-      if (player && won) {
+      // Submit score to leaderboard
+      if (player && finalScore > 0) {
         try {
           await fetch("/api/scores", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               game: "pong",
-              map: `level-${aiLevel}`,
+              map: `level-${selectedLevel}`,
               name: player.name,
               age: player.age,
-              score: aiLevel, // Higher difficulty = more points
+              score: finalScore,
             }),
           })
           setLeaderboardKey((k) => k + 1)
@@ -70,7 +72,7 @@ export function PongGameClient() {
         }
       }
     },
-    [player, aiLevel]
+    [player, selectedLevel]
   )
 
   const canStart = useCallback(() => {
@@ -82,13 +84,14 @@ export function PongGameClient() {
       setShowRegistration(true)
       return
     }
-    setPlayerScore(0)
-    setAiScore(0)
+    setScore(0)
+    setLives(5)
+    setCurrentLevel(selectedLevel)
     setShowLevelSelect(false)
-  }, [isRegistered, setShowRegistration])
+  }, [isRegistered, setShowRegistration, selectedLevel])
 
   const handleSelectLevel = (lvl: number) => {
-    setAiLevel(lvl)
+    setSelectedLevel(lvl)
   }
 
   return (
@@ -147,114 +150,141 @@ export function PongGameClient() {
         )}
       </div>
 
-      <GameHeader title="PONG" subtitle="You vs Machine" />
+      <GameHeader title="BREAKOUT" subtitle="Break the bricks!" />
 
-      {/* AI Level selector */}
+      {/* Level selector */}
       {showLevelSelect && !isRunning && (
         <div className="w-full max-w-md">
-          <p className="font-mono text-[9px] text-muted-foreground text-center mb-3">SELECT AI DIFFICULTY</p>
+          <p className="font-mono text-[9px] text-muted-foreground text-center mb-3">SELECT START LEVEL</p>
           <div className="grid grid-cols-5 gap-2">
-            {AI_CONFIGS.map((config, idx) => (
+            {LEVEL_CONFIGS.map((config, idx) => (
               <button
                 key={idx}
                 onClick={() => handleSelectLevel(idx + 1)}
                 className={`flex flex-col items-center justify-center p-2 rounded-lg border transition-all ${
-                  aiLevel === idx + 1
+                  selectedLevel === idx + 1
                     ? "border-primary bg-primary/10 text-primary"
                     : "border-border bg-card text-muted-foreground hover:border-primary/50 hover:text-foreground"
                 }`}
               >
                 <span className="font-sans text-lg font-bold">{idx + 1}</span>
-                <span className="font-mono text-[8px] truncate w-full text-center">{config.name}</span>
+                <span className="font-mono text-[7px] truncate w-full text-center">{config.name}</span>
               </button>
             ))}
           </div>
           <p className="font-mono text-[9px] text-center mt-2 text-muted-foreground">
-            {AI_CONFIGS[aiLevel - 1].description}
+            {LEVEL_CONFIGS[selectedLevel - 1].description}
           </p>
         </div>
       )}
 
       {/* Score display */}
-      <div className="flex items-center gap-8 md:gap-16">
+      <div className="flex items-center gap-6 md:gap-12">
         <div className="flex flex-col items-center gap-1">
-          <span className="font-mono text-[9px] text-primary uppercase tracking-wider">
-            YOU
+          <span className="font-mono text-[9px] text-muted-foreground uppercase tracking-wider">
+            SCORE
           </span>
           <span
-            className="font-sans text-3xl md:text-5xl text-primary tabular-nums"
+            className="font-sans text-2xl md:text-4xl text-primary tabular-nums"
             style={{
               textShadow: isRunning ? "0 0 20px rgba(57, 255, 120, 0.5)" : "none",
             }}
           >
-            {playerScore}
+            {score}
           </span>
         </div>
-
-        <div className="font-mono text-2xl text-muted-foreground">:</div>
 
         <div className="flex flex-col items-center gap-1">
-          <span className="font-mono text-[9px] text-destructive uppercase tracking-wider">
-            AI LV.{aiLevel}
+          <span className="font-mono text-[9px] text-muted-foreground uppercase tracking-wider">
+            LIVES
           </span>
-          <span
-            className="font-sans text-3xl md:text-5xl text-destructive tabular-nums"
-            style={{
-              textShadow: isRunning ? "0 0 20px rgba(255, 71, 87, 0.5)" : "none",
-            }}
-          >
-            {aiScore}
+          <div className="flex gap-1">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div
+                key={i}
+                className={`w-3 h-3 rounded-full transition-all ${
+                  i < lives ? "bg-destructive shadow-lg shadow-destructive/50" : "bg-muted"
+                }`}
+              />
+            ))}
+          </div>
+        </div>
+
+        <div className="flex flex-col items-center gap-1">
+          <span className="font-mono text-[9px] text-muted-foreground uppercase tracking-wider">
+            LEVEL
+          </span>
+          <span className="font-sans text-2xl md:text-4xl text-foreground tabular-nums">
+            {isRunning ? currentLevel : selectedLevel}
           </span>
         </div>
       </div>
 
-      {/* Win counter */}
-      <div className="flex items-center gap-4">
-        <div className="flex items-center gap-2">
-          <span className="font-mono text-[9px] text-muted-foreground">WINS:</span>
-          <span className="font-mono text-xs text-primary">{wins}</span>
-        </div>
-        <div className="w-px h-4 bg-border" />
-        <div className="flex items-center gap-2">
-          <span className="font-mono text-[9px] text-muted-foreground">AI:</span>
-          <span className="font-mono text-xs text-foreground">{AI_CONFIGS[aiLevel - 1].name}</span>
-        </div>
+      {/* High score */}
+      <div className="flex items-center gap-2">
+        <span className="font-mono text-[9px] text-muted-foreground">HIGH SCORE:</span>
+        <span className="font-mono text-xs text-primary">{highScore}</span>
       </div>
 
-      <PongGame
+      <BreakoutGame
         onScoreChange={handleScoreChange}
+        onLivesChange={handleLivesChange}
         onGameOver={handleGameOver}
         onGameStart={handleGameStart}
         canStart={canStart}
         isRunning={isRunning}
         setIsRunning={setIsRunning}
-        winScore={11}
-        aiLevel={aiLevel}
+        startLevel={selectedLevel}
       />
 
       {/* Controls info */}
       <div className="hidden md:flex items-center gap-6 text-muted-foreground">
         <div className="flex items-center gap-2">
-          <Kbd>W</Kbd>
+          <Kbd>A</Kbd>
           <span className="font-mono text-xs">or</span>
-          <Kbd>{"^"}</Kbd>
-          <span className="font-mono text-xs ml-1">Up</span>
+          <Kbd>{"<"}</Kbd>
+          <span className="font-mono text-xs ml-1">Left</span>
         </div>
         <div className="w-px h-4 bg-border" />
         <div className="flex items-center gap-2">
-          <Kbd>S</Kbd>
+          <Kbd>D</Kbd>
           <span className="font-mono text-xs">or</span>
-          <Kbd>v</Kbd>
-          <span className="font-mono text-xs ml-1">Down</span>
+          <Kbd>{">"}</Kbd>
+          <span className="font-mono text-xs ml-1">Right</span>
         </div>
         <div className="w-px h-4 bg-border" />
         <div className="flex items-center gap-2">
-          <span className="font-mono text-[9px] text-muted-foreground/60">First to 11 wins</span>
+          <Kbd>Space</Kbd>
+          <span className="font-mono text-xs ml-1">Launch Ball</span>
+        </div>
+      </div>
+
+      {/* Brick legend */}
+      <div className="flex flex-wrap items-center justify-center gap-4 text-muted-foreground">
+        <div className="flex items-center gap-1.5">
+          <div className="w-4 h-3 rounded-sm bg-[#39ff78]" />
+          <span className="font-mono text-[9px]">Normal</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <div className="w-4 h-3 rounded-sm bg-[#ffcc00]" />
+          <span className="font-mono text-[9px]">Hard (2 hits)</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <div className="w-4 h-3 rounded-sm bg-[#ff6b6b]" />
+          <span className="font-mono text-[9px]">Super (3 hits)</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <div className="w-4 h-3 rounded-sm bg-[#666688]" />
+          <span className="font-mono text-[9px]">Steel</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <div className="w-4 h-3 rounded-sm bg-[#ff00ff]" />
+          <span className="font-mono text-[9px]">Explosive</span>
         </div>
       </div>
 
       {/* Leaderboard */}
-      <Leaderboard game="pong" mapId={`level-${aiLevel}`} refreshKey={leaderboardKey} />
+      <Leaderboard game="pong" mapId={`level-${selectedLevel}`} refreshKey={leaderboardKey} />
 
       <footer className="font-mono text-[10px] text-muted-foreground/50 text-center mt-auto pt-4">
         <p>Built by NDL</p>

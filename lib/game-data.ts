@@ -71,8 +71,8 @@ export const GAMES: GameInfo[] = [
   },
   {
     id: "pong",
-    name: "Pong",
-    description: "The original competitive arcade game. You vs the machine.",
+    name: "Breakout",
+    description: "Break the bricks! 10 unique levels with pipes and tubes.",
     href: "/games/pong",
     available: true,
   },

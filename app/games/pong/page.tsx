@@ -3,33 +3,33 @@ import { JsonLd } from "@/components/json-ld"
 import { PongGameClient } from "./client"
 
 export const metadata: Metadata = {
-  title: "Pong Game Online - Play Free Classic Pong | NDL Arcade",
+  title: "Breakout Game Online - Play Free Brick Breaker | NDL Arcade",
   description:
-    "Play Pong online for free. The original competitive arcade game. You vs the AI machine. Choi game Pong co dien mien phi.",
+    "Play Breakout online for free. Break the bricks in 10 unique levels with pipes and tube patterns. 5 lives, multiple brick types. Choi game pha gach mien phi.",
   keywords: [
-    "pong online",
-    "play pong free",
-    "classic pong",
-    "pong game",
-    "arcade pong",
-    "ping pong game",
-    "game pong co dien",
-    "choi pong online",
+    "breakout online",
+    "play breakout free",
+    "brick breaker",
+    "breakout game",
+    "arcade breakout",
+    "block breaker game",
+    "game pha gach",
+    "choi breakout online",
   ],
   alternates: {
     canonical: "/games/pong",
   },
   openGraph: {
-    title: "Pong Game Online - Play Free | NDL Arcade",
+    title: "Breakout Game Online - Play Free | NDL Arcade",
     description:
-      "Play classic Pong online for free. Compete against AI in this legendary arcade game. Choi game Pong co dien mien phi.",
+      "Play Breakout online for free. Break bricks in 10 unique levels with diverse patterns. Choi game pha gach mien phi.",
     url: "/games/pong",
     images: [
       {
         url: "/android-chrome-512x512.png",
         width: 512,
         height: 512,
-        alt: "Pong Game - NDL Arcade",
+        alt: "Breakout Game - NDL Arcade",
       },
     ],
   },
@@ -38,10 +38,10 @@ export const metadata: Metadata = {
 const jsonLd = {
   "@context": "https://schema.org",
   "@type": "VideoGame",
-  name: "Pong Game - NDL Arcade",
+  name: "Breakout Game - NDL Arcade",
   description:
-    "Classic Pong arcade game. Compete against AI in this legendary paddle game.",
-  genre: ["Arcade", "Sports"],
+    "Classic Breakout brick breaker arcade game. 10 unique levels with pipe patterns, multiple brick types, 5 lives.",
+  genre: ["Arcade", "Action"],
   gamePlatform: "Web Browser",
   applicationCategory: "Game",
   numberOfPlayers: {
