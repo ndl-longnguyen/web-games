@@ -6,9 +6,9 @@ const CANVAS_WIDTH = 480
 const CANVAS_HEIGHT = 600
 const PADDLE_WIDTH = 80
 const PADDLE_HEIGHT = 12
-const BALL_SIZE = 8
+const BALL_SIZE = 16
 const PADDLE_SPEED = 10
-const INITIAL_BALL_SPEED = 5
+const INITIAL_BALL_SPEED = 3
 const BRICK_ROWS = 8
 const BRICK_COLS = 10
 const BRICK_WIDTH = 44
@@ -140,18 +140,18 @@ const LEVEL_PATTERNS: number[][][] = [
   ],
 ]
 
-// Level configurations
+// Level configurations - slower speeds for better gameplay
 const LEVEL_CONFIGS = [
   { name: "Training", speedMult: 1.0, description: "Learn the basics" },
-  { name: "Pipes I", speedMult: 1.1, description: "Vertical pipe maze" },
-  { name: "Diamond", speedMult: 1.15, description: "Precious gem pattern" },
-  { name: "Tubes", speedMult: 1.2, description: "Horizontal tube system" },
-  { name: "Labyrinth", speedMult: 1.25, description: "Find your way through" },
-  { name: "Pipes II", speedMult: 1.3, description: "Inverted U formation" },
-  { name: "Spiral", speedMult: 1.35, description: "Circular path" },
-  { name: "Fortress", speedMult: 1.4, description: "Breach the walls" },
-  { name: "Network", speedMult: 1.45, description: "Complex pipe network" },
-  { name: "Ultimate", speedMult: 1.5, description: "The final challenge" },
+  { name: "Pipes I", speedMult: 1.05, description: "Vertical pipe maze" },
+  { name: "Diamond", speedMult: 1.1, description: "Precious gem pattern" },
+  { name: "Tubes", speedMult: 1.15, description: "Horizontal tube system" },
+  { name: "Labyrinth", speedMult: 1.2, description: "Find your way through" },
+  { name: "Pipes II", speedMult: 1.25, description: "Inverted U formation" },
+  { name: "Spiral", speedMult: 1.3, description: "Circular path" },
+  { name: "Fortress", speedMult: 1.35, description: "Breach the walls" },
+  { name: "Network", speedMult: 1.4, description: "Complex pipe network" },
+  { name: "Ultimate", speedMult: 1.45, description: "The final challenge" },
 ]
 
 interface Brick {
@@ -557,7 +557,7 @@ export function BreakoutGame({
       // Calculate bounce angle based on hit position
       const hitPos = (ball.x - paddle.x) / PADDLE_WIDTH
       const angle = (hitPos - 0.5) * Math.PI * 0.7 // -63 to +63 degrees
-      ball.speed = Math.min(12, ball.speed + 0.1)
+      ball.speed = Math.min(6, ball.speed + 0.05)
       ball.vx = ball.speed * Math.sin(angle)
       ball.vy = -Math.abs(ball.speed * Math.cos(angle))
       ball.y = CANVAS_HEIGHT - 40 - BALL_SIZE / 2
