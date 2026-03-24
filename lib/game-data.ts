@@ -67,20 +67,20 @@ export const GAMES: GameInfo[] = [
     name: "Tetris",
     description: "Stack blocks. Clear lines. Chase the high score.",
     href: "/games/tetris",
-    available: false,
+    available: true,
   },
   {
     id: "pong",
     name: "Pong",
     description: "The original competitive arcade game. You vs the machine.",
     href: "/games/pong",
-    available: false,
+    available: true,
   },
   {
     id: "space-invaders",
     name: "Space Invaders",
     description: "Defend Earth from waves of descending alien invaders.",
     href: "/games/space-invaders",
-    available: false,
+    available: true,
   },
 ]
