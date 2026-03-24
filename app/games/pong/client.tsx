@@ -6,6 +6,7 @@ import Link from "next/link"
 import { GameHeader } from "@/components/game-header"
 import { Leaderboard } from "@/components/leaderboard"
 import { usePlayer } from "@/components/player-provider"
+import { AI_CONFIGS } from "@/components/pong-game"
 
 const PongGame = dynamic(
   () =>
@@ -29,8 +30,10 @@ export function PongGameClient() {
   const [playerScore, setPlayerScore] = useState(0)
   const [aiScore, setAiScore] = useState(0)
   const [wins, setWins] = useState(0)
+  const [aiLevel, setAiLevel] = useState(1)
   const [isRunning, setIsRunning] = useState(false)
   const [leaderboardKey, setLeaderboardKey] = useState(0)
+  const [showLevelSelect, setShowLevelSelect] = useState(true)
 
   const handleScoreChange = useCallback((newPlayerScore: number, newAiScore: number) => {
     setPlayerScore(newPlayerScore)
@@ -41,12 +44,13 @@ export function PongGameClient() {
     async (finalPlayerScore: number) => {
       // Player wins if they reached win score
       const won = finalPlayerScore >= 11
+      setShowLevelSelect(true)
 
       if (won) {
         setWins((w) => w + 1)
       }
 
-      // Submit score to leaderboard (wins count as score)
+      // Submit score to leaderboard (wins count as score with difficulty multiplier)
       if (player && won) {
         try {
           await fetch("/api/scores", {
@@ -54,10 +58,10 @@ export function PongGameClient() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               game: "pong",
-              map: "classic",
+              map: `level-${aiLevel}`,
               name: player.name,
               age: player.age,
-              score: 1, // Each win = 1 point
+              score: aiLevel, // Higher difficulty = more points
             }),
           })
           setLeaderboardKey((k) => k + 1)
@@ -66,7 +70,7 @@ export function PongGameClient() {
         }
       }
     },
-    [player]
+    [player, aiLevel]
   )
 
   const canStart = useCallback(() => {
@@ -80,7 +84,12 @@ export function PongGameClient() {
     }
     setPlayerScore(0)
     setAiScore(0)
+    setShowLevelSelect(false)
   }, [isRegistered, setShowRegistration])
+
+  const handleSelectLevel = (lvl: number) => {
+    setAiLevel(lvl)
+  }
 
   return (
     <main className="min-h-dvh bg-background flex flex-col items-center px-4 py-4 sm:py-8 gap-4 sm:gap-6 relative">
@@ -140,6 +149,32 @@ export function PongGameClient() {
 
       <GameHeader title="PONG" subtitle="You vs Machine" />
 
+      {/* AI Level selector */}
+      {showLevelSelect && !isRunning && (
+        <div className="w-full max-w-md">
+          <p className="font-mono text-[9px] text-muted-foreground text-center mb-3">SELECT AI DIFFICULTY</p>
+          <div className="grid grid-cols-5 gap-2">
+            {AI_CONFIGS.map((config, idx) => (
+              <button
+                key={idx}
+                onClick={() => handleSelectLevel(idx + 1)}
+                className={`flex flex-col items-center justify-center p-2 rounded-lg border transition-all ${
+                  aiLevel === idx + 1
+                    ? "border-primary bg-primary/10 text-primary"
+                    : "border-border bg-card text-muted-foreground hover:border-primary/50 hover:text-foreground"
+                }`}
+              >
+                <span className="font-sans text-lg font-bold">{idx + 1}</span>
+                <span className="font-mono text-[8px] truncate w-full text-center">{config.name}</span>
+              </button>
+            ))}
+          </div>
+          <p className="font-mono text-[9px] text-center mt-2 text-muted-foreground">
+            {AI_CONFIGS[aiLevel - 1].description}
+          </p>
+        </div>
+      )}
+
       {/* Score display */}
       <div className="flex items-center gap-8 md:gap-16">
         <div className="flex flex-col items-center gap-1">
@@ -160,7 +195,7 @@ export function PongGameClient() {
 
         <div className="flex flex-col items-center gap-1">
           <span className="font-mono text-[9px] text-destructive uppercase tracking-wider">
-            AI
+            AI LV.{aiLevel}
           </span>
           <span
             className="font-sans text-3xl md:text-5xl text-destructive tabular-nums"
@@ -174,9 +209,16 @@ export function PongGameClient() {
       </div>
 
       {/* Win counter */}
-      <div className="flex items-center gap-2">
-        <span className="font-mono text-[9px] text-muted-foreground">WINS:</span>
-        <span className="font-mono text-xs text-primary">{wins}</span>
+      <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2">
+          <span className="font-mono text-[9px] text-muted-foreground">WINS:</span>
+          <span className="font-mono text-xs text-primary">{wins}</span>
+        </div>
+        <div className="w-px h-4 bg-border" />
+        <div className="flex items-center gap-2">
+          <span className="font-mono text-[9px] text-muted-foreground">AI:</span>
+          <span className="font-mono text-xs text-foreground">{AI_CONFIGS[aiLevel - 1].name}</span>
+        </div>
       </div>
 
       <PongGame
@@ -187,6 +229,7 @@ export function PongGameClient() {
         isRunning={isRunning}
         setIsRunning={setIsRunning}
         winScore={11}
+        aiLevel={aiLevel}
       />
 
       {/* Controls info */}
@@ -211,7 +254,7 @@ export function PongGameClient() {
       </div>
 
       {/* Leaderboard */}
-      <Leaderboard game="pong" mapId="classic" refreshKey={leaderboardKey} />
+      <Leaderboard game="pong" mapId={`level-${aiLevel}`} refreshKey={leaderboardKey} />
 
       <footer className="font-mono text-[10px] text-muted-foreground/50 text-center mt-auto pt-4">
         <p>Built by NDL</p>

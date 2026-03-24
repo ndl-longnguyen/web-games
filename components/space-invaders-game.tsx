@@ -18,6 +18,8 @@ const INVADER_PADDING = 10
 const INVADER_BASE_SPEED = 0.5
 const INVADER_DROP = 15
 const ENEMY_BULLET_SPEED = 4
+const POWERUP_SIZE = 15
+const POWERUP_SPEED = 2
 
 interface Position {
   x: number
@@ -29,7 +31,24 @@ interface Invader extends Position {
   type: 0 | 1 | 2 // Different invader types
 }
 
+interface Boss extends Position {
+  health: number
+  maxHealth: number
+  width: number
+  height: number
+  phase: number // Boss attack phase
+  lastShot: number
+  lastMove: number
+  direction: 1 | -1
+}
+
 interface Bullet extends Position {
+  active: boolean
+  damage?: number
+}
+
+interface PowerUp extends Position {
+  type: "spread" | "rapid" | "power" | "shield" | "bomb"
   active: boolean
 }
 
@@ -39,6 +58,7 @@ interface SpaceInvadersGameProps {
   onGameStart: () => void
   onLivesChange: (lives: number) => void
   onWaveChange: (wave: number) => void
+  onWeaponLevelChange?: (level: number) => void
   canStart?: () => boolean
   isRunning: boolean
   setIsRunning: (running: boolean) => void
@@ -47,12 +67,31 @@ interface SpaceInvadersGameProps {
 const INVADER_COLORS = ["#39ff78", "#00d4ff", "#c850c0"]
 const INVADER_POINTS = [30, 20, 10]
 
+// Power-up configurations
+const POWERUP_CONFIGS = {
+  spread: { color: "#ffaa00", name: "Spread Shot", description: "Fire multiple bullets" },
+  rapid: { color: "#00d4ff", name: "Rapid Fire", description: "Faster shooting" },
+  power: { color: "#ff4757", name: "Power Up", description: "More damage" },
+  shield: { color: "#39ff78", name: "Shield", description: "Block one hit" },
+  bomb: { color: "#c850c0", name: "Bomb", description: "Clear all enemies" },
+}
+
+// Boss configurations for every 10 waves
+const BOSS_CONFIGS = [
+  { name: "Commander", health: 50, width: 80, height: 40, color: "#ff6b35" },
+  { name: "Destroyer", health: 100, width: 100, height: 50, color: "#ff4757" },
+  { name: "Overlord", health: 150, width: 120, height: 60, color: "#9c27b0" },
+  { name: "Titan", health: 200, width: 140, height: 70, color: "#3d5af1" },
+  { name: "Leviathan", health: 300, width: 160, height: 80, color: "#00bcd4" },
+]
+
 export function SpaceInvadersGame({
   onScoreChange,
   onGameOver,
   onGameStart,
   onLivesChange,
   onWaveChange,
+  onWeaponLevelChange,
   canStart,
   isRunning,
   setIsRunning,
@@ -66,15 +105,30 @@ export function SpaceInvadersGame({
   const bulletsRef = useRef<Bullet[]>([])
   const enemyBulletsRef = useRef<Bullet[]>([])
   const invadersRef = useRef<Invader[]>([])
+  const powerUpsRef = useRef<PowerUp[]>([])
+  const bossRef = useRef<Boss | null>(null)
   const invaderDirectionRef = useRef<1 | -1>(1)
   const invaderSpeedRef = useRef(INVADER_BASE_SPEED)
   const scoreRef = useRef(0)
   const livesRef = useRef(3)
   const waveRef = useRef(1)
+  const weaponLevelRef = useRef(1)
+  const shieldActiveRef = useRef(false)
   const lastShotRef = useRef(0)
   const lastEnemyShotRef = useRef(0)
   const keysRef = useRef<Set<string>>(new Set())
   const animationFrameRef = useRef<number | null>(null)
+
+  // Weapon stats based on level
+  const getWeaponStats = useCallback(() => {
+    const level = weaponLevelRef.current
+    return {
+      bulletCount: Math.min(1 + Math.floor((level - 1) / 3), 5), // 1-5 bullets
+      fireRate: Math.max(50, 250 - (level - 1) * 20), // 250ms to 50ms
+      damage: 1 + Math.floor((level - 1) / 2), // 1-X damage
+      spreadAngle: Math.min(0.1 + (level - 1) * 0.02, 0.4), // Spread angle
+    }
+  }, [])
 
   // Responsive canvas sizing
   useEffect(() => {
@@ -82,7 +136,7 @@ export function SpaceInvadersGame({
       const vw = window.innerWidth
       const vh = window.innerHeight
       const maxW = vw - 32
-      const maxH = vh - 340
+      const maxH = vh - 380
       const aspectRatio = CANVAS_WIDTH / CANVAS_HEIGHT
       let width = Math.min(maxW, CANVAS_WIDTH)
       let height = width / aspectRatio
@@ -117,55 +171,168 @@ export function SpaceInvadersGame({
     }
 
     // Increase speed based on wave
-    invaderSpeedRef.current = INVADER_BASE_SPEED + (wave - 1) * 0.3
+    invaderSpeedRef.current = INVADER_BASE_SPEED + (wave - 1) * 0.15
 
     return invaders
   }, [])
+
+  const createBoss = useCallback((wave: number) => {
+    const bossIndex = Math.min(Math.floor((wave - 1) / 10), BOSS_CONFIGS.length - 1)
+    const config = BOSS_CONFIGS[bossIndex]
+    const waveMultiplier = 1 + Math.floor(wave / 10) * 0.5
+
+    return {
+      x: CANVAS_WIDTH / 2 - config.width / 2,
+      y: 30,
+      health: Math.floor(config.health * waveMultiplier),
+      maxHealth: Math.floor(config.health * waveMultiplier),
+      width: config.width,
+      height: config.height,
+      phase: 0,
+      lastShot: 0,
+      lastMove: 0,
+      direction: 1 as 1 | -1,
+    }
+  }, [])
+
+  const spawnPowerUp = useCallback((x: number, y: number) => {
+    // 15% chance to spawn power-up
+    if (Math.random() > 0.15) return
+
+    const types: PowerUp["type"][] = ["spread", "rapid", "power", "shield", "bomb"]
+    const weights = [0.3, 0.3, 0.25, 0.1, 0.05] // bomb is rarest
+    const random = Math.random()
+    let cumulative = 0
+    let selectedType: PowerUp["type"] = "spread"
+
+    for (let i = 0; i < types.length; i++) {
+      cumulative += weights[i]
+      if (random < cumulative) {
+        selectedType = types[i]
+        break
+      }
+    }
+
+    powerUpsRef.current.push({
+      x: x + INVADER_WIDTH / 2 - POWERUP_SIZE / 2,
+      y,
+      type: selectedType,
+      active: true,
+    })
+  }, [])
+
+  const collectPowerUp = useCallback((powerUp: PowerUp) => {
+    const level = weaponLevelRef.current
+
+    switch (powerUp.type) {
+      case "spread":
+      case "rapid":
+      case "power":
+        weaponLevelRef.current = Math.min(level + 1, 20) // Max level 20
+        onWeaponLevelChange?.(weaponLevelRef.current)
+        break
+      case "shield":
+        shieldActiveRef.current = true
+        break
+      case "bomb":
+        // Clear all invaders
+        invadersRef.current.forEach((inv) => {
+          if (inv.alive) {
+            inv.alive = false
+            scoreRef.current += INVADER_POINTS[inv.type] * 2
+          }
+        })
+        onScoreChange(scoreRef.current)
+        break
+    }
+  }, [onScoreChange, onWeaponLevelChange])
 
   const resetGame = useCallback(() => {
     playerRef.current = { x: CANVAS_WIDTH / 2 - PLAYER_WIDTH / 2, y: CANVAS_HEIGHT - 40 }
     bulletsRef.current = []
     enemyBulletsRef.current = []
+    powerUpsRef.current = []
     invadersRef.current = createInvaders(1)
+    bossRef.current = null
     invaderDirectionRef.current = 1
     scoreRef.current = 0
     livesRef.current = 3
     waveRef.current = 1
+    weaponLevelRef.current = 1
+    shieldActiveRef.current = false
     lastShotRef.current = 0
     lastEnemyShotRef.current = 0
     onScoreChange(0)
     onLivesChange(3)
     onWaveChange(1)
-  }, [createInvaders, onScoreChange, onLivesChange, onWaveChange])
+    onWeaponLevelChange?.(1)
+  }, [createInvaders, onScoreChange, onLivesChange, onWaveChange, onWeaponLevelChange])
 
   const shoot = useCallback(() => {
     const now = Date.now()
-    if (now - lastShotRef.current < 250) return // Rate limit shots
+    const stats = getWeaponStats()
+    if (now - lastShotRef.current < stats.fireRate) return
     lastShotRef.current = now
 
-    bulletsRef.current.push({
-      x: playerRef.current.x + PLAYER_WIDTH / 2 - BULLET_WIDTH / 2,
-      y: playerRef.current.y - BULLET_HEIGHT,
-      active: true,
-    })
-  }, [])
+    const player = playerRef.current
+    const bulletCount = stats.bulletCount
+
+    if (bulletCount === 1) {
+      bulletsRef.current.push({
+        x: player.x + PLAYER_WIDTH / 2 - BULLET_WIDTH / 2,
+        y: player.y - BULLET_HEIGHT,
+        active: true,
+        damage: stats.damage,
+      })
+    } else {
+      // Spread shot
+      for (let i = 0; i < bulletCount; i++) {
+        const angle = ((i - (bulletCount - 1) / 2) * stats.spreadAngle)
+        bulletsRef.current.push({
+          x: player.x + PLAYER_WIDTH / 2 - BULLET_WIDTH / 2 + Math.sin(angle) * 10,
+          y: player.y - BULLET_HEIGHT,
+          active: true,
+          damage: stats.damage,
+        })
+      }
+    }
+  }, [getWeaponStats])
 
   const enemyShoot = useCallback(() => {
     const now = Date.now()
-    const shootInterval = Math.max(800, 2000 - waveRef.current * 150)
+    const wave = waveRef.current
+    const shootInterval = Math.max(400, 2000 - wave * 80)
     if (now - lastEnemyShotRef.current < shootInterval) return
     lastEnemyShotRef.current = now
+
+    // Boss shooting
+    const boss = bossRef.current
+    if (boss) {
+      const bulletCount = 1 + Math.floor(boss.phase / 2)
+      for (let i = 0; i < bulletCount; i++) {
+        const offset = (i - (bulletCount - 1) / 2) * 30
+        enemyBulletsRef.current.push({
+          x: boss.x + boss.width / 2 - BULLET_WIDTH / 2 + offset,
+          y: boss.y + boss.height,
+          active: true,
+        })
+      }
+      return
+    }
 
     const aliveInvaders = invadersRef.current.filter((inv) => inv.alive)
     if (aliveInvaders.length === 0) return
 
-    // Random invader shoots
-    const shooter = aliveInvaders[Math.floor(Math.random() * aliveInvaders.length)]
-    enemyBulletsRef.current.push({
-      x: shooter.x + INVADER_WIDTH / 2 - BULLET_WIDTH / 2,
-      y: shooter.y + INVADER_HEIGHT,
-      active: true,
-    })
+    // Multiple shooters based on wave
+    const shooterCount = Math.min(1 + Math.floor(wave / 5), 3)
+    for (let s = 0; s < shooterCount; s++) {
+      const shooter = aliveInvaders[Math.floor(Math.random() * aliveInvaders.length)]
+      enemyBulletsRef.current.push({
+        x: shooter.x + INVADER_WIDTH / 2 - BULLET_WIDTH / 2,
+        y: shooter.y + INVADER_HEIGHT,
+        active: true,
+      })
+    }
   }, [])
 
   const draw = useCallback(() => {
@@ -189,10 +356,31 @@ export function SpaceInvadersGame({
       ctx.fillRect(x * sx, y * sy, 1, 1)
     }
 
+    // Draw shield indicator
+    if (shieldActiveRef.current) {
+      const player = playerRef.current
+      ctx.strokeStyle = "#39ff78"
+      ctx.lineWidth = 2
+      ctx.shadowColor = "#39ff78"
+      ctx.shadowBlur = 10
+      ctx.beginPath()
+      ctx.arc(
+        (player.x + PLAYER_WIDTH / 2) * sx,
+        (player.y + PLAYER_HEIGHT / 2) * sy,
+        30 * Math.min(sx, sy),
+        0,
+        Math.PI * 2
+      )
+      ctx.stroke()
+      ctx.shadowBlur = 0
+    }
+
     // Draw player
-    ctx.shadowColor = "#39ff78"
+    const weaponLevel = weaponLevelRef.current
+    const playerColor = weaponLevel >= 10 ? "#ffaa00" : weaponLevel >= 5 ? "#00d4ff" : "#39ff78"
+    ctx.shadowColor = playerColor
     ctx.shadowBlur = 15
-    ctx.fillStyle = "#39ff78"
+    ctx.fillStyle = playerColor
     const player = playerRef.current
     // Ship body
     ctx.beginPath()
@@ -201,15 +389,28 @@ export function SpaceInvadersGame({
     ctx.lineTo((player.x + PLAYER_WIDTH) * sx, (player.y + PLAYER_HEIGHT) * sy)
     ctx.closePath()
     ctx.fill()
+    
+    // Draw weapon level wings for high levels
+    if (weaponLevel >= 3) {
+      ctx.fillStyle = playerColor
+      ctx.globalAlpha = 0.5
+      const wingSize = Math.min(weaponLevel, 10) * 2
+      ctx.fillRect((player.x - wingSize / 2) * sx, (player.y + 10) * sy, wingSize * sx, 5 * sy)
+      ctx.fillRect((player.x + PLAYER_WIDTH - wingSize / 2) * sx, (player.y + 10) * sy, wingSize * sx, 5 * sy)
+      ctx.globalAlpha = 1
+    }
     ctx.shadowBlur = 0
 
     // Draw player bullets
-    ctx.shadowColor = "#39ff78"
+    const stats = getWeaponStats()
+    const bulletColor = stats.damage >= 5 ? "#ffaa00" : stats.damage >= 3 ? "#00d4ff" : "#39ff78"
+    ctx.shadowColor = bulletColor
     ctx.shadowBlur = 8
-    ctx.fillStyle = "#39ff78"
+    ctx.fillStyle = bulletColor
     bulletsRef.current.forEach((bullet) => {
       if (bullet.active) {
-        ctx.fillRect(bullet.x * sx, bullet.y * sy, BULLET_WIDTH * sx, BULLET_HEIGHT * sy)
+        const bulletW = BULLET_WIDTH + (bullet.damage || 1) - 1
+        ctx.fillRect(bullet.x * sx, bullet.y * sy, bulletW * sx, BULLET_HEIGHT * sy)
       }
     })
     ctx.shadowBlur = 0
@@ -224,6 +425,81 @@ export function SpaceInvadersGame({
       }
     })
     ctx.shadowBlur = 0
+
+    // Draw power-ups
+    powerUpsRef.current.forEach((powerUp) => {
+      if (!powerUp.active) return
+      const config = POWERUP_CONFIGS[powerUp.type]
+      ctx.shadowColor = config.color
+      ctx.shadowBlur = 12
+      ctx.fillStyle = config.color
+      ctx.beginPath()
+      ctx.arc(
+        (powerUp.x + POWERUP_SIZE / 2) * sx,
+        (powerUp.y + POWERUP_SIZE / 2) * sy,
+        (POWERUP_SIZE / 2) * Math.min(sx, sy),
+        0,
+        Math.PI * 2
+      )
+      ctx.fill()
+      
+      // Draw icon
+      ctx.fillStyle = "#0d0d24"
+      ctx.font = `${10 * Math.min(sx, sy)}px sans-serif`
+      ctx.textAlign = "center"
+      ctx.textBaseline = "middle"
+      const icons: Record<string, string> = { spread: "S", rapid: "R", power: "P", shield: "O", bomb: "B" }
+      ctx.fillText(icons[powerUp.type], (powerUp.x + POWERUP_SIZE / 2) * sx, (powerUp.y + POWERUP_SIZE / 2) * sy)
+      ctx.shadowBlur = 0
+    })
+
+    // Draw boss
+    const boss = bossRef.current
+    if (boss) {
+      const bossIndex = Math.min(Math.floor((waveRef.current - 1) / 10), BOSS_CONFIGS.length - 1)
+      const bossColor = BOSS_CONFIGS[bossIndex].color
+      ctx.shadowColor = bossColor
+      ctx.shadowBlur = 20
+      ctx.fillStyle = bossColor
+
+      // Boss body
+      const bx = boss.x * sx
+      const by = boss.y * sy
+      const bw = boss.width * sx
+      const bh = boss.height * sy
+
+      ctx.beginPath()
+      ctx.roundRect(bx + bw * 0.1, by + bh * 0.2, bw * 0.8, bh * 0.6, 8)
+      ctx.fill()
+
+      // Boss wings
+      ctx.fillRect(bx, by + bh * 0.3, bw * 0.2, bh * 0.4)
+      ctx.fillRect(bx + bw * 0.8, by + bh * 0.3, bw * 0.2, bh * 0.4)
+
+      // Boss cockpit
+      ctx.fillStyle = "#0d0d24"
+      ctx.beginPath()
+      ctx.arc(bx + bw * 0.5, by + bh * 0.5, bh * 0.2, 0, Math.PI * 2)
+      ctx.fill()
+
+      // Health bar
+      ctx.shadowBlur = 0
+      const healthPercent = boss.health / boss.maxHealth
+      ctx.fillStyle = "#333"
+      ctx.fillRect(bx, (boss.y - 15) * sy, bw, 8 * sy)
+      ctx.fillStyle = healthPercent > 0.5 ? "#39ff78" : healthPercent > 0.25 ? "#ffaa00" : "#ff4757"
+      ctx.fillRect(bx, (boss.y - 15) * sy, bw * healthPercent, 8 * sy)
+      
+      // Boss name
+      ctx.fillStyle = "#fff"
+      ctx.font = `bold ${10 * Math.min(sx, sy)}px monospace`
+      ctx.textAlign = "center"
+      ctx.fillText(
+        `${BOSS_CONFIGS[bossIndex].name} - Wave ${waveRef.current}`,
+        bx + bw / 2,
+        (boss.y - 25) * sy
+      )
+    }
 
     // Draw invaders
     invadersRef.current.forEach((invader) => {
@@ -241,14 +517,12 @@ export function SpaceInvadersGame({
 
       // Draw invader shape based on type
       if (invader.type === 0) {
-        // Top row - small
         ctx.beginPath()
         ctx.roundRect(ix + iw * 0.2, iy, iw * 0.6, ih * 0.6, 2)
         ctx.fill()
         ctx.fillRect(ix, iy + ih * 0.4, iw * 0.3, ih * 0.6)
         ctx.fillRect(ix + iw * 0.7, iy + ih * 0.4, iw * 0.3, ih * 0.6)
       } else if (invader.type === 1) {
-        // Middle rows
         ctx.beginPath()
         ctx.roundRect(ix + iw * 0.1, iy + ih * 0.2, iw * 0.8, ih * 0.6, 2)
         ctx.fill()
@@ -257,7 +531,6 @@ export function SpaceInvadersGame({
         ctx.fillRect(ix + iw * 0.2, iy + ih * 0.7, iw * 0.2, ih * 0.3)
         ctx.fillRect(ix + iw * 0.6, iy + ih * 0.7, iw * 0.2, ih * 0.3)
       } else {
-        // Bottom rows - large
         ctx.beginPath()
         ctx.roundRect(ix, iy + ih * 0.2, iw, ih * 0.6, 3)
         ctx.fill()
@@ -268,7 +541,7 @@ export function SpaceInvadersGame({
       }
     })
     ctx.shadowBlur = 0
-  }, [canvasSize, scaleX, scaleY])
+  }, [canvasSize, scaleX, scaleY, getWeaponStats])
 
   const gameLoop = useCallback(() => {
     if (!isRunning || gameState !== "playing") return
@@ -300,62 +573,165 @@ export function SpaceInvadersGame({
       return bullet.y < CANVAS_HEIGHT
     })
 
-    // Move invaders
-    let shouldDrop = false
-    const invaders = invadersRef.current
-    const aliveInvaders = invaders.filter((inv) => inv.alive)
+    // Move power-ups
+    powerUpsRef.current = powerUpsRef.current.filter((powerUp) => {
+      if (!powerUp.active) return false
+      powerUp.y += POWERUP_SPEED
+      return powerUp.y < CANVAS_HEIGHT
+    })
 
-    if (aliveInvaders.length > 0) {
-      // Check if any invader hit the edge
-      for (const invader of aliveInvaders) {
-        if (
-          (invaderDirectionRef.current === 1 && invader.x + INVADER_WIDTH >= CANVAS_WIDTH - 10) ||
-          (invaderDirectionRef.current === -1 && invader.x <= 10)
-        ) {
-          shouldDrop = true
-          break
+    // Check power-up collection
+    powerUpsRef.current.forEach((powerUp) => {
+      if (!powerUp.active) return
+      if (
+        powerUp.x < player.x + PLAYER_WIDTH &&
+        powerUp.x + POWERUP_SIZE > player.x &&
+        powerUp.y < player.y + PLAYER_HEIGHT &&
+        powerUp.y + POWERUP_SIZE > player.y
+      ) {
+        powerUp.active = false
+        collectPowerUp(powerUp)
+      }
+    })
+
+    // Boss logic
+    const boss = bossRef.current
+    if (boss) {
+      const now = Date.now()
+      
+      // Boss movement
+      if (now - boss.lastMove > 50) {
+        boss.lastMove = now
+        boss.x += boss.direction * 2
+        if (boss.x <= 0 || boss.x + boss.width >= CANVAS_WIDTH) {
+          boss.direction *= -1
         }
       }
 
-      if (shouldDrop) {
-        invaderDirectionRef.current *= -1
-        for (const invader of invaders) {
-          invader.y += INVADER_DROP
-        }
-        // Speed up as invaders are destroyed
-        invaderSpeedRef.current += 0.1
-      } else {
-        for (const invader of invaders) {
-          invader.x += invaderSpeedRef.current * invaderDirectionRef.current
-        }
-      }
-
-      // Enemy shooting
+      // Boss shooting
       enemyShoot()
-    }
 
-    // Check bullet collisions with invaders
-    for (const bullet of bulletsRef.current) {
-      if (!bullet.active) continue
-      for (const invader of invaders) {
-        if (!invader.alive) continue
+      // Boss phase changes
+      const healthPercent = boss.health / boss.maxHealth
+      boss.phase = healthPercent > 0.66 ? 0 : healthPercent > 0.33 ? 1 : 2
+
+      // Check bullet collisions with boss
+      for (const bullet of bulletsRef.current) {
+        if (!bullet.active) continue
         if (
-          bullet.x < invader.x + INVADER_WIDTH &&
-          bullet.x + BULLET_WIDTH > invader.x &&
-          bullet.y < invader.y + INVADER_HEIGHT &&
-          bullet.y + BULLET_HEIGHT > invader.y
+          bullet.x < boss.x + boss.width &&
+          bullet.x + BULLET_WIDTH > boss.x &&
+          bullet.y < boss.y + boss.height &&
+          bullet.y + BULLET_HEIGHT > boss.y
         ) {
           bullet.active = false
-          invader.alive = false
-          scoreRef.current += INVADER_POINTS[invader.type]
+          boss.health -= bullet.damage || 1
+          scoreRef.current += 10
           onScoreChange(scoreRef.current)
 
-          // Speed up remaining invaders
-          const remaining = invaders.filter((i) => i.alive).length
-          if (remaining > 0) {
-            invaderSpeedRef.current = INVADER_BASE_SPEED + (waveRef.current - 1) * 0.3 + (40 - remaining) * 0.03
+          if (boss.health <= 0) {
+            // Boss defeated
+            const bossIndex = Math.min(Math.floor((waveRef.current - 1) / 10), BOSS_CONFIGS.length - 1)
+            scoreRef.current += 500 * (bossIndex + 1)
+            onScoreChange(scoreRef.current)
+            bossRef.current = null
+
+            // Next wave
+            waveRef.current += 1
+            onWaveChange(waveRef.current)
+            invadersRef.current = createInvaders(waveRef.current)
+            invaderDirectionRef.current = 1
+            bulletsRef.current = []
+            enemyBulletsRef.current = []
           }
-          break
+        }
+      }
+    } else {
+      // Normal invader logic
+      const invaders = invadersRef.current
+      const aliveInvaders = invaders.filter((inv) => inv.alive)
+
+      if (aliveInvaders.length > 0) {
+        let shouldDrop = false
+        for (const invader of aliveInvaders) {
+          if (
+            (invaderDirectionRef.current === 1 && invader.x + INVADER_WIDTH >= CANVAS_WIDTH - 10) ||
+            (invaderDirectionRef.current === -1 && invader.x <= 10)
+          ) {
+            shouldDrop = true
+            break
+          }
+        }
+
+        if (shouldDrop) {
+          invaderDirectionRef.current *= -1
+          for (const invader of invaders) {
+            invader.y += INVADER_DROP
+          }
+          invaderSpeedRef.current += 0.1
+        } else {
+          for (const invader of invaders) {
+            invader.x += invaderSpeedRef.current * invaderDirectionRef.current
+          }
+        }
+
+        enemyShoot()
+      }
+
+      // Check bullet collisions with invaders
+      for (const bullet of bulletsRef.current) {
+        if (!bullet.active) continue
+        for (const invader of invaders) {
+          if (!invader.alive) continue
+          if (
+            bullet.x < invader.x + INVADER_WIDTH &&
+            bullet.x + BULLET_WIDTH > invader.x &&
+            bullet.y < invader.y + INVADER_HEIGHT &&
+            bullet.y + BULLET_HEIGHT > invader.y
+          ) {
+            bullet.active = false
+            invader.alive = false
+            scoreRef.current += INVADER_POINTS[invader.type] * Math.ceil(waveRef.current / 5)
+            onScoreChange(scoreRef.current)
+
+            // Spawn power-up chance
+            spawnPowerUp(invader.x, invader.y)
+
+            // Speed up remaining invaders
+            const remaining = invaders.filter((i) => i.alive).length
+            if (remaining > 0) {
+              invaderSpeedRef.current = INVADER_BASE_SPEED + (waveRef.current - 1) * 0.15 + (40 - remaining) * 0.02
+            }
+            break
+          }
+        }
+      }
+
+      // Check if all invaders destroyed
+      if (aliveInvaders.length === 0) {
+        waveRef.current += 1
+        onWaveChange(waveRef.current)
+
+        // Boss every 10 waves
+        if (waveRef.current % 10 === 0) {
+          bossRef.current = createBoss(waveRef.current)
+          invadersRef.current = []
+        } else {
+          invadersRef.current = createInvaders(waveRef.current)
+        }
+        
+        invaderDirectionRef.current = 1
+        bulletsRef.current = []
+        enemyBulletsRef.current = []
+      }
+
+      // Check if invaders reached the bottom
+      for (const invader of aliveInvaders) {
+        if (invader.y + INVADER_HEIGHT >= player.y) {
+          setGameState("gameover")
+          setIsRunning(false)
+          onGameOver(scoreRef.current)
+          return
         }
       }
     }
@@ -370,41 +746,30 @@ export function SpaceInvadersGame({
         bullet.y + BULLET_HEIGHT > player.y
       ) {
         bullet.active = false
-        livesRef.current -= 1
-        onLivesChange(livesRef.current)
 
-        if (livesRef.current <= 0) {
-          setGameState("gameover")
-          setIsRunning(false)
-          onGameOver(scoreRef.current)
-          return
+        if (shieldActiveRef.current) {
+          shieldActiveRef.current = false
+        } else {
+          livesRef.current -= 1
+          onLivesChange(livesRef.current)
+
+          // Lose some weapon levels on death
+          weaponLevelRef.current = Math.max(1, weaponLevelRef.current - 2)
+          onWeaponLevelChange?.(weaponLevelRef.current)
+
+          if (livesRef.current <= 0) {
+            setGameState("gameover")
+            setIsRunning(false)
+            onGameOver(scoreRef.current)
+            return
+          }
         }
       }
     }
 
-    // Check if invaders reached the bottom
-    for (const invader of aliveInvaders) {
-      if (invader.y + INVADER_HEIGHT >= player.y) {
-        setGameState("gameover")
-        setIsRunning(false)
-        onGameOver(scoreRef.current)
-        return
-      }
-    }
-
-    // Check if all invaders destroyed - next wave
-    if (aliveInvaders.length === 0) {
-      waveRef.current += 1
-      onWaveChange(waveRef.current)
-      invadersRef.current = createInvaders(waveRef.current)
-      invaderDirectionRef.current = 1
-      bulletsRef.current = []
-      enemyBulletsRef.current = []
-    }
-
     draw()
     animationFrameRef.current = requestAnimationFrame(gameLoop)
-  }, [isRunning, gameState, draw, shoot, enemyShoot, createInvaders, onScoreChange, onLivesChange, onWaveChange, onGameOver, setIsRunning])
+  }, [isRunning, gameState, draw, shoot, enemyShoot, createInvaders, createBoss, spawnPowerUp, collectPowerUp, onScoreChange, onLivesChange, onWaveChange, onWeaponLevelChange, onGameOver, setIsRunning])
 
   // Start game loop
   useEffect(() => {

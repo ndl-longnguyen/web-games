@@ -30,6 +30,7 @@ export function SpaceInvadersGameClient() {
   const [highScore, setHighScore] = useState(0)
   const [lives, setLives] = useState(3)
   const [wave, setWave] = useState(1)
+  const [weaponLevel, setWeaponLevel] = useState(1)
   const [isRunning, setIsRunning] = useState(false)
   const [leaderboardKey, setLeaderboardKey] = useState(0)
 
@@ -43,6 +44,10 @@ export function SpaceInvadersGameClient() {
 
   const handleWaveChange = useCallback((newWave: number) => {
     setWave(newWave)
+  }, [])
+
+  const handleWeaponLevelChange = useCallback((newLevel: number) => {
+    setWeaponLevel(newLevel)
   }, [])
 
   const handleGameOver = useCallback(
@@ -86,7 +91,19 @@ export function SpaceInvadersGameClient() {
     setScore(0)
     setLives(3)
     setWave(1)
+    setWeaponLevel(1)
   }, [isRegistered, setShowRegistration])
+
+  // Get weapon level color and name
+  const getWeaponInfo = () => {
+    if (weaponLevel >= 15) return { color: "text-purple-400", name: "LEGENDARY" }
+    if (weaponLevel >= 10) return { color: "text-yellow-400", name: "EPIC" }
+    if (weaponLevel >= 5) return { color: "text-cyan-400", name: "RARE" }
+    if (weaponLevel >= 3) return { color: "text-blue-400", name: "UNCOMMON" }
+    return { color: "text-foreground/70", name: "BASIC" }
+  }
+
+  const weaponInfo = getWeaponInfo()
 
   return (
     <main className="min-h-dvh bg-background flex flex-col items-center px-4 py-4 sm:py-8 gap-4 sm:gap-6 relative">
@@ -147,7 +164,7 @@ export function SpaceInvadersGameClient() {
       <GameHeader title="SPACE INVADERS" subtitle="Defend Earth" />
 
       {/* Stats */}
-      <div className="flex items-center gap-4 md:gap-8">
+      <div className="flex items-center gap-3 md:gap-6 flex-wrap justify-center">
         <div className="flex flex-col items-center gap-1">
           <span className="font-mono text-[9px] text-muted-foreground uppercase tracking-wider">
             Score
@@ -197,6 +214,19 @@ export function SpaceInvadersGameClient() {
 
         <div className="flex flex-col items-center gap-1">
           <span className="font-mono text-[9px] text-muted-foreground uppercase tracking-wider">
+            Weapon
+          </span>
+          <div className="flex items-center gap-1">
+            <span className={`font-sans text-lg md:text-2xl tabular-nums ${weaponInfo.color}`}>
+              Lv.{weaponLevel}
+            </span>
+          </div>
+        </div>
+
+        <div className="w-px h-10 bg-border" />
+
+        <div className="flex flex-col items-center gap-1">
+          <span className="font-mono text-[9px] text-muted-foreground uppercase tracking-wider">
             Best
           </span>
           <span className="font-sans text-lg md:text-2xl text-foreground/70 tabular-nums">
@@ -205,12 +235,27 @@ export function SpaceInvadersGameClient() {
         </div>
       </div>
 
+      {/* Weapon tier indicator */}
+      {isRunning && (
+        <div className="flex items-center gap-2">
+          <span className={`font-mono text-[9px] ${weaponInfo.color}`}>
+            {weaponInfo.name}
+          </span>
+          {wave % 10 === 0 && wave > 0 && (
+            <span className="font-mono text-[9px] text-destructive animate-pulse">
+              BOSS BATTLE!
+            </span>
+          )}
+        </div>
+      )}
+
       <SpaceInvadersGame
         onScoreChange={handleScoreChange}
         onGameOver={handleGameOver}
         onGameStart={handleGameStart}
         onLivesChange={handleLivesChange}
         onWaveChange={handleWaveChange}
+        onWeaponLevelChange={handleWeaponLevelChange}
         canStart={canStart}
         isRunning={isRunning}
         setIsRunning={setIsRunning}
@@ -237,6 +282,35 @@ export function SpaceInvadersGameClient() {
           <span className="font-mono text-xs">Fire</span>
         </div>
       </div>
+
+      {/* Power-up legend */}
+      <div className="flex flex-wrap justify-center gap-3 text-muted-foreground max-w-md">
+        <div className="flex items-center gap-1.5">
+          <div className="w-3 h-3 rounded-full bg-[#ffaa00]" />
+          <span className="font-mono text-[8px]">Spread</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <div className="w-3 h-3 rounded-full bg-[#00d4ff]" />
+          <span className="font-mono text-[8px]">Rapid</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <div className="w-3 h-3 rounded-full bg-[#ff4757]" />
+          <span className="font-mono text-[8px]">Power</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <div className="w-3 h-3 rounded-full bg-[#39ff78]" />
+          <span className="font-mono text-[8px]">Shield</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <div className="w-3 h-3 rounded-full bg-[#c850c0]" />
+          <span className="font-mono text-[8px]">Bomb</span>
+        </div>
+      </div>
+
+      {/* Boss info */}
+      <p className="font-mono text-[9px] text-muted-foreground/60 text-center">
+        Boss appears every 10 waves | Collect power-ups to upgrade weapon
+      </p>
 
       {/* Leaderboard */}
       <Leaderboard game="space-invaders" mapId="classic" refreshKey={leaderboardKey} />
