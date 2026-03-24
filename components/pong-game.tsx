@@ -10,7 +10,24 @@ const BALL_SIZE = 10
 const PADDLE_SPEED = 8
 const INITIAL_BALL_SPEED = 4
 const MAX_BALL_SPEED = 12
-const AI_REACTION_DELAY = 0.7 // AI reaction factor (0-1, lower = slower)
+
+// AI difficulty configurations - 10 levels
+// reaction: how fast AI reacts (0-1, higher = faster)
+// accuracy: how accurate AI predicts ball (0-1, higher = more accurate)
+// errorChance: chance AI makes mistake (0-1, lower = fewer mistakes)
+// speedMultiplier: AI paddle speed multiplier
+const AI_CONFIGS = [
+  { name: "Rookie", reaction: 0.2, accuracy: 0.3, errorChance: 0.4, speedMultiplier: 0.4, description: "First time playing" },
+  { name: "Beginner", reaction: 0.3, accuracy: 0.4, errorChance: 0.35, speedMultiplier: 0.5, description: "Learning the basics" },
+  { name: "Casual", reaction: 0.4, accuracy: 0.5, errorChance: 0.3, speedMultiplier: 0.6, description: "Relaxed gameplay" },
+  { name: "Amateur", reaction: 0.5, accuracy: 0.55, errorChance: 0.25, speedMultiplier: 0.7, description: "Getting competitive" },
+  { name: "Intermediate", reaction: 0.55, accuracy: 0.6, errorChance: 0.2, speedMultiplier: 0.75, description: "Decent challenge" },
+  { name: "Skilled", reaction: 0.6, accuracy: 0.7, errorChance: 0.15, speedMultiplier: 0.8, description: "Requires focus" },
+  { name: "Advanced", reaction: 0.7, accuracy: 0.75, errorChance: 0.1, speedMultiplier: 0.85, description: "Serious competition" },
+  { name: "Expert", reaction: 0.8, accuracy: 0.85, errorChance: 0.08, speedMultiplier: 0.9, description: "Near perfect play" },
+  { name: "Master", reaction: 0.9, accuracy: 0.92, errorChance: 0.05, speedMultiplier: 0.95, description: "Almost unbeatable" },
+  { name: "Legendary", reaction: 0.98, accuracy: 0.98, errorChance: 0.02, speedMultiplier: 1.0, description: "Good luck!" },
+]
 
 interface PongGameProps {
   onScoreChange: (playerScore: number, aiScore: number) => void
@@ -20,6 +37,7 @@ interface PongGameProps {
   isRunning: boolean
   setIsRunning: (running: boolean) => void
   winScore?: number
+  aiLevel?: number
 }
 
 export function PongGame({
@@ -30,6 +48,7 @@ export function PongGame({
   isRunning,
   setIsRunning,
   winScore = 11,
+  aiLevel = 1,
 }: PongGameProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [gameState, setGameState] = useState<"idle" | "playing" | "gameover">("idle")
@@ -50,6 +69,15 @@ export function PongGame({
   const aiScoreRef = useRef(0)
   const keysRef = useRef<Set<string>>(new Set())
   const animationFrameRef = useRef<number | null>(null)
+  const aiLevelRef = useRef(aiLevel)
+  const aiTargetYRef = useRef(CANVAS_HEIGHT / 2)
+  const aiErrorRef = useRef(0)
+  const lastAiUpdateRef = useRef(0)
+
+  // Update AI level ref when prop changes
+  useEffect(() => {
+    aiLevelRef.current = aiLevel
+  }, [aiLevel])
 
   // Responsive canvas sizing
   useEffect(() => {
@@ -57,7 +85,7 @@ export function PongGame({
       const vw = window.innerWidth
       const vh = window.innerHeight
       const maxW = vw - 32
-      const maxH = vh - 380
+      const maxH = vh - 420
       const aspectRatio = CANVAS_WIDTH / CANVAS_HEIGHT
       let width = Math.min(maxW, CANVAS_WIDTH)
       let height = width / aspectRatio
@@ -83,6 +111,8 @@ export function PongGame({
       vy: INITIAL_BALL_SPEED * (Math.random() - 0.5),
       speed: INITIAL_BALL_SPEED,
     }
+    // Reset AI error when ball resets
+    aiErrorRef.current = (Math.random() - 0.5) * PADDLE_HEIGHT * 0.5
   }, [])
 
   const resetGame = useCallback(() => {
@@ -93,6 +123,8 @@ export function PongGame({
     aiScoreRef.current = 0
     onScoreChange(0, 0)
     setWinner(null)
+    aiTargetYRef.current = CANVAS_HEIGHT / 2
+    aiErrorRef.current = 0
   }, [resetBall, onScoreChange])
 
   const draw = useCallback(() => {
@@ -129,10 +161,13 @@ export function PongGame({
       PADDLE_HEIGHT * sy
     )
 
-    // AI paddle (right)
-    ctx.shadowColor = "#ff4757"
+    // AI paddle (right) - color changes based on difficulty
+    const aiConfig = AI_CONFIGS[aiLevelRef.current - 1]
+    const aiColorIntensity = Math.floor(100 + (aiLevelRef.current / 10) * 155)
+    const aiColor = `rgb(255, ${Math.max(0, 150 - aiLevelRef.current * 12)}, ${Math.max(0, 150 - aiLevelRef.current * 12)})`
+    ctx.shadowColor = aiColor
     ctx.shadowBlur = 15
-    ctx.fillStyle = "#ff4757"
+    ctx.fillStyle = aiColor
     ctx.fillRect(
       (CANVAS_WIDTH - 20) * sx,
       aiPaddleRef.current.y * sy,
@@ -156,12 +191,33 @@ export function PongGame({
     ctx.shadowBlur = 0
   }, [canvasSize, scaleX, scaleY])
 
+  const predictBallY = useCallback(() => {
+    const ball = ballRef.current
+    if (ball.vx < 0) return CANVAS_HEIGHT / 2 // Ball moving away
+
+    // Predict where ball will be when it reaches AI paddle
+    const timeToReach = (CANVAS_WIDTH - 20 - ball.x) / ball.vx
+    let predictedY = ball.y + ball.vy * timeToReach
+
+    // Account for bounces
+    while (predictedY < 0 || predictedY > CANVAS_HEIGHT) {
+      if (predictedY < 0) {
+        predictedY = -predictedY
+      } else if (predictedY > CANVAS_HEIGHT) {
+        predictedY = 2 * CANVAS_HEIGHT - predictedY
+      }
+    }
+
+    return predictedY
+  }, [])
+
   const gameLoop = useCallback(() => {
     if (!isRunning || gameState !== "playing") return
 
     const ball = ballRef.current
     const playerPaddle = playerPaddleRef.current
     const aiPaddle = aiPaddleRef.current
+    const config = AI_CONFIGS[aiLevelRef.current - 1]
 
     // Player paddle movement
     if (keysRef.current.has("w") || keysRef.current.has("arrowup")) {
@@ -171,13 +227,35 @@ export function PongGame({
       playerPaddle.y = Math.min(CANVAS_HEIGHT - PADDLE_HEIGHT, playerPaddle.y + PADDLE_SPEED)
     }
 
-    // AI paddle movement (follows ball with some delay)
-    const aiCenter = aiPaddle.y + PADDLE_HEIGHT / 2
-    const targetY = ball.y
-    const diff = targetY - aiCenter
+    // AI paddle movement with configurable difficulty
+    const now = Date.now()
+    const aiUpdateInterval = 100 - config.reaction * 80 // 100ms to 20ms based on reaction
 
-    // Add some imperfection to AI
-    const aiSpeed = PADDLE_SPEED * AI_REACTION_DELAY
+    if (now - lastAiUpdateRef.current > aiUpdateInterval) {
+      lastAiUpdateRef.current = now
+
+      // Decide if AI should make an error
+      if (Math.random() < config.errorChance) {
+        aiErrorRef.current = (Math.random() - 0.5) * PADDLE_HEIGHT * (1 - config.accuracy)
+      }
+
+      // Predict ball position based on accuracy
+      if (ball.vx > 0) {
+        const predictedY = predictBallY()
+        const accuracyNoise = (Math.random() - 0.5) * PADDLE_HEIGHT * (1 - config.accuracy)
+        aiTargetYRef.current = predictedY + accuracyNoise + aiErrorRef.current
+      } else {
+        // When ball moving away, return to center with some randomness
+        aiTargetYRef.current = CANVAS_HEIGHT / 2 + (Math.random() - 0.5) * 50
+      }
+    }
+
+    // Move AI paddle towards target
+    const aiCenter = aiPaddle.y + PADDLE_HEIGHT / 2
+    const targetY = aiTargetYRef.current
+    const diff = targetY - aiCenter
+    const aiSpeed = PADDLE_SPEED * config.speedMultiplier
+
     if (Math.abs(diff) > 5) {
       if (diff > 0) {
         aiPaddle.y = Math.min(CANVAS_HEIGHT - PADDLE_HEIGHT, aiPaddle.y + aiSpeed)
@@ -210,6 +288,8 @@ export function PongGame({
       ball.vx = Math.abs(ball.speed * Math.cos(angle))
       ball.vy = ball.speed * Math.sin(angle)
       ball.x = 21
+      // Reset AI error on paddle hit
+      aiErrorRef.current = (Math.random() - 0.5) * PADDLE_HEIGHT * (1 - config.accuracy)
     }
 
     // Ball collision with AI paddle
@@ -256,7 +336,7 @@ export function PongGame({
 
     draw()
     animationFrameRef.current = requestAnimationFrame(gameLoop)
-  }, [isRunning, gameState, draw, resetBall, onScoreChange, onGameOver, setIsRunning, winScore])
+  }, [isRunning, gameState, draw, resetBall, onScoreChange, onGameOver, setIsRunning, winScore, predictBallY])
 
   // Start game loop
   useEffect(() => {
@@ -424,3 +504,5 @@ export function PongGame({
     </div>
   )
 }
+
+export { AI_CONFIGS }

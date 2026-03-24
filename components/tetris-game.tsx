@@ -28,6 +28,20 @@ interface Tetromino {
   color: string
 }
 
+// Level configurations - 10 difficulty levels
+const LEVEL_CONFIGS = [
+  { name: "Beginner", speed: 800, speedIncrement: 30, description: "Perfect for learning" },
+  { name: "Easy", speed: 700, speedIncrement: 35, description: "Gentle pace" },
+  { name: "Casual", speed: 600, speedIncrement: 40, description: "Relaxed gameplay" },
+  { name: "Normal", speed: 500, speedIncrement: 45, description: "Standard difficulty" },
+  { name: "Moderate", speed: 420, speedIncrement: 50, description: "Getting serious" },
+  { name: "Challenging", speed: 350, speedIncrement: 55, description: "For experienced players" },
+  { name: "Hard", speed: 280, speedIncrement: 60, description: "Fast reflexes needed" },
+  { name: "Expert", speed: 220, speedIncrement: 65, description: "Masters only" },
+  { name: "Insane", speed: 160, speedIncrement: 70, description: "Lightning speed" },
+  { name: "Impossible", speed: 100, speedIncrement: 75, description: "Good luck!" },
+]
+
 interface TetrisGameProps {
   onScoreChange: (score: number) => void
   onGameOver: (score: number) => void
@@ -37,6 +51,8 @@ interface TetrisGameProps {
   canStart?: () => boolean
   isRunning: boolean
   setIsRunning: (running: boolean) => void
+  startingLevel?: number
+  onStartingLevelChange?: (level: number) => void
 }
 
 function getRandomTetromino(): Tetromino {
@@ -73,6 +89,7 @@ export function TetrisGame({
   canStart,
   isRunning,
   setIsRunning,
+  startingLevel = 1,
 }: TetrisGameProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [gameState, setGameState] = useState<"idle" | "playing" | "gameover">("idle")
@@ -86,14 +103,20 @@ export function TetrisGame({
   const scoreRef = useRef(0)
   const linesRef = useRef(0)
   const levelRef = useRef(1)
+  const startingLevelRef = useRef(startingLevel)
   const gameLoopRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Update starting level ref when prop changes
+  useEffect(() => {
+    startingLevelRef.current = startingLevel
+  }, [startingLevel])
 
   // Responsive canvas sizing
   useEffect(() => {
     function updateSize() {
       const vw = window.innerWidth
       const vh = window.innerHeight
-      const maxH = vh - 380
+      const maxH = vh - 420
       const maxW = vw - 32
       const cellSize = Math.min(
         Math.floor(maxH / BOARD_HEIGHT),
@@ -111,6 +134,14 @@ export function TetrisGame({
   }, [])
 
   const cellSize = canvasSize.width / BOARD_WIDTH
+
+  const getSpeed = useCallback((currentLevel: number) => {
+    const config = LEVEL_CONFIGS[startingLevelRef.current - 1] || LEVEL_CONFIGS[0]
+    // Speed decreases as in-game level increases
+    const baseSpeed = config.speed
+    const increment = config.speedIncrement
+    return Math.max(50, baseSpeed - (currentLevel - 1) * increment)
+  }, [])
 
   const isValidPosition = useCallback((piece: Tetromino, board: (string | null)[][]): boolean => {
     for (let y = 0; y < piece.shape.length; y++) {
@@ -162,9 +193,10 @@ export function TetrisGame({
       linesRef.current += linesCleared
       onLinesChange(linesRef.current)
       
-      // Score based on lines cleared
+      // Score based on lines cleared and difficulty
       const lineScores = [0, 100, 300, 500, 800]
-      scoreRef.current += lineScores[linesCleared] * levelRef.current
+      const difficultyMultiplier = startingLevelRef.current
+      scoreRef.current += lineScores[linesCleared] * levelRef.current * difficultyMultiplier
       onScoreChange(scoreRef.current)
 
       // Level up every 10 lines
@@ -259,7 +291,7 @@ export function TetrisGame({
       ...piece,
       position: { ...piece.position, y: piece.position.y + dropDistance },
     }
-    scoreRef.current += dropDistance * 2
+    scoreRef.current += dropDistance * 2 * startingLevelRef.current
     onScoreChange(scoreRef.current)
     lockPiece()
   }, [isValidPosition, lockPiece, onScoreChange])
@@ -387,18 +419,18 @@ export function TetrisGame({
   // Game loop
   useEffect(() => {
     if (isRunning && gameState === "playing") {
-      const speed = Math.max(100, 500 - (levelRef.current - 1) * 50)
+      const speed = getSpeed(levelRef.current)
       const loop = () => {
         moveDown()
         draw()
-        gameLoopRef.current = setTimeout(loop, speed)
+        gameLoopRef.current = setTimeout(loop, getSpeed(levelRef.current))
       }
       gameLoopRef.current = setTimeout(loop, speed)
     }
     return () => {
       if (gameLoopRef.current) clearTimeout(gameLoopRef.current)
     }
-  }, [isRunning, gameState, moveDown, draw])
+  }, [isRunning, gameState, moveDown, draw, getSpeed])
 
   // Keyboard controls
   useEffect(() => {
@@ -433,7 +465,7 @@ export function TetrisGame({
         case "s":
         case "S":
           moveDown()
-          scoreRef.current += 1
+          scoreRef.current += 1 * startingLevelRef.current
           onScoreChange(scoreRef.current)
           draw()
           break
@@ -470,7 +502,7 @@ export function TetrisGame({
           break
         case "down":
           moveDown()
-          scoreRef.current += 1
+          scoreRef.current += 1 * startingLevelRef.current
           onScoreChange(scoreRef.current)
           break
         case "rotate":
@@ -622,3 +654,5 @@ export function TetrisGame({
     </div>
   )
 }
+
+export { LEVEL_CONFIGS }

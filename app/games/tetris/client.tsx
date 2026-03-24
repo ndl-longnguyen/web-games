@@ -6,6 +6,7 @@ import Link from "next/link"
 import { GameHeader } from "@/components/game-header"
 import { Leaderboard } from "@/components/leaderboard"
 import { usePlayer } from "@/components/player-provider"
+import { LEVEL_CONFIGS } from "@/components/tetris-game"
 
 const TetrisGame = dynamic(
   () =>
@@ -30,8 +31,10 @@ export function TetrisGameClient() {
   const [highScore, setHighScore] = useState(0)
   const [lines, setLines] = useState(0)
   const [level, setLevel] = useState(1)
+  const [startingLevel, setStartingLevel] = useState(1)
   const [isRunning, setIsRunning] = useState(false)
   const [leaderboardKey, setLeaderboardKey] = useState(0)
+  const [showLevelSelect, setShowLevelSelect] = useState(true)
 
   const handleScoreChange = useCallback((newScore: number) => {
     setScore(newScore)
@@ -50,6 +53,7 @@ export function TetrisGameClient() {
       if (finalScore > highScore) {
         setHighScore(finalScore)
       }
+      setShowLevelSelect(true)
 
       // Submit score to leaderboard
       if (player && finalScore > 0) {
@@ -59,7 +63,7 @@ export function TetrisGameClient() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               game: "tetris",
-              map: "classic",
+              map: `level-${startingLevel}`,
               name: player.name,
               age: player.age,
               score: finalScore,
@@ -71,7 +75,7 @@ export function TetrisGameClient() {
         }
       }
     },
-    [highScore, player]
+    [highScore, player, startingLevel]
   )
 
   const canStart = useCallback(() => {
@@ -86,7 +90,12 @@ export function TetrisGameClient() {
     setScore(0)
     setLines(0)
     setLevel(1)
+    setShowLevelSelect(false)
   }, [isRegistered, setShowRegistration])
+
+  const handleSelectLevel = (lvl: number) => {
+    setStartingLevel(lvl)
+  }
 
   return (
     <main className="min-h-dvh bg-background flex flex-col items-center px-4 py-4 sm:py-8 gap-4 sm:gap-6 relative">
@@ -146,6 +155,32 @@ export function TetrisGameClient() {
 
       <GameHeader title="TETRIS" subtitle="Stack & Clear" />
 
+      {/* Level selector */}
+      {showLevelSelect && !isRunning && (
+        <div className="w-full max-w-md">
+          <p className="font-mono text-[9px] text-muted-foreground text-center mb-3">SELECT DIFFICULTY</p>
+          <div className="grid grid-cols-5 gap-2">
+            {LEVEL_CONFIGS.map((config, idx) => (
+              <button
+                key={idx}
+                onClick={() => handleSelectLevel(idx + 1)}
+                className={`flex flex-col items-center justify-center p-2 rounded-lg border transition-all ${
+                  startingLevel === idx + 1
+                    ? "border-primary bg-primary/10 text-primary"
+                    : "border-border bg-card text-muted-foreground hover:border-primary/50 hover:text-foreground"
+                }`}
+              >
+                <span className="font-sans text-lg font-bold">{idx + 1}</span>
+                <span className="font-mono text-[8px] truncate w-full text-center">{config.name}</span>
+              </button>
+            ))}
+          </div>
+          <p className="font-mono text-[9px] text-center mt-2 text-muted-foreground">
+            {LEVEL_CONFIGS[startingLevel - 1].description}
+          </p>
+        </div>
+      )}
+
       {/* Stats */}
       <div className="flex items-center gap-4 md:gap-8">
         <div className="flex flex-col items-center gap-1">
@@ -188,6 +223,17 @@ export function TetrisGameClient() {
 
         <div className="flex flex-col items-center gap-1">
           <span className="font-mono text-[9px] text-muted-foreground uppercase tracking-wider">
+            Diff
+          </span>
+          <span className="font-sans text-lg md:text-2xl text-foreground/70 tabular-nums">
+            {startingLevel}
+          </span>
+        </div>
+
+        <div className="w-px h-10 bg-border" />
+
+        <div className="flex flex-col items-center gap-1">
+          <span className="font-mono text-[9px] text-muted-foreground uppercase tracking-wider">
             Best
           </span>
           <span className="font-sans text-lg md:text-2xl text-foreground/70 tabular-nums">
@@ -205,6 +251,7 @@ export function TetrisGameClient() {
         canStart={canStart}
         isRunning={isRunning}
         setIsRunning={setIsRunning}
+        startingLevel={startingLevel}
       />
 
       {/* Controls info */}
@@ -232,7 +279,7 @@ export function TetrisGameClient() {
       </div>
 
       {/* Leaderboard */}
-      <Leaderboard game="tetris" mapId="classic" refreshKey={leaderboardKey} />
+      <Leaderboard game="tetris" mapId={`level-${startingLevel}`} refreshKey={leaderboardKey} />
 
       <footer className="font-mono text-[10px] text-muted-foreground/50 text-center mt-auto pt-4">
         <p>Built by NDL</p>
