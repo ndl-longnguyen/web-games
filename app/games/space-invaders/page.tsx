@@ -3,33 +3,40 @@ import { JsonLd } from "@/components/json-ld"
 import { SpaceInvadersGameClient } from "./client"
 
 export const metadata: Metadata = {
-  title: "Space Invaders Game Online - Play Free | NDL Arcade",
+  title: "Space Invaders Game Online - Play Free Alien Shooter | NDL Arcade",
   description:
-    "Play Space Invaders online for free. Defend Earth from waves of alien invaders in this classic arcade shooter. Choi game ban may bay co dien mien phi.",
+    "Play Space Invaders online for free. Defend Earth from alien waves with power-ups, weapon upgrades up to level 20, and epic boss battles every 10 waves. No download required. Choi game ban may bay co dien mien phi voi boss va power-up.",
   keywords: [
     "space invaders online",
-    "play space invaders free",
-    "classic space invaders",
+    "space invaders free",
+    "play space invaders",
     "alien shooter game",
-    "arcade shooter",
+    "classic space invaders",
+    "space invaders unblocked",
+    "arcade shooter game",
+    "retro shooter",
     "game ban may bay",
-    "game space invaders",
+    "game space invaders online",
     "ban may bay co dien",
+    "game ban alien",
+    "space invaders boss battle",
+    "space invaders power ups",
   ],
   alternates: {
-    canonical: "/games/space-invaders",
+    canonical: "https://game-online-free.vercel.app/games/space-invaders",
   },
   openGraph: {
-    title: "Space Invaders Game Online - Play Free | NDL Arcade",
+    title: "Space Invaders Online - Free Alien Shooter with Boss Battles",
     description:
-      "Play classic Space Invaders online for free. Defend Earth from alien waves. Choi game ban may bay co dien mien phi.",
-    url: "/games/space-invaders",
+      "Play Space Invaders free online. Power-ups, weapon upgrades, epic boss battles. Classic arcade shooter in your browser. Choi game ban may bay mien phi.",
+    url: "https://game-online-free.vercel.app/games/space-invaders",
+    type: "website",
     images: [
       {
         url: "/android-chrome-512x512.png",
         width: 512,
         height: 512,
-        alt: "Space Invaders Game - NDL Arcade",
+        alt: "Space Invaders Game - Free Online Alien Shooter",
       },
     ],
   },

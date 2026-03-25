@@ -5,33 +5,41 @@ import { MapCard } from "@/components/map-card"
 import { JsonLd } from "@/components/json-ld"
 
 export const metadata: Metadata = {
-  title: "Snake Game Online - 5 Unique Levels & Maps | NDL Arcade",
+  title: "Snake Game Online - Play Free with 5 Unique Maps | NDL Arcade",
   description:
-    "Play Snake online with 5 unique maps: Classic, Portal Walls, Maze Runner, The Gauntlet, and Random Chaos. Free retro arcade experience. Chơi game rắn săn mồi online với nhiều bản đồ đa dạng.",
+    "Play Snake game online for free with 5 unique maps: Classic, Portal Walls, Maze Runner, The Gauntlet, and Random Chaos. Leaderboard, smooth controls, mobile friendly. No download required. Choi game ran san moi online mien phi 5 ban do.",
   keywords: [
-    "snake game online",
+    "snake game",
+    "snake online",
     "play snake free",
-    "snake game levels",
-    "snake game portal walls",
-    "snake maze challenge",
-    "game rắn săn mồi online",
-    "rắn săn mồi xuyên tường",
-    "thử thách rắn săn mồi",
+    "snake game online",
+    "classic snake",
+    "snake io",
+    "snake unblocked",
+    "snake game maps",
+    "snake portal walls",
+    "snake maze",
+    "game ran san moi",
+    "choi ran san moi online",
+    "ran san moi mien phi",
+    "game ran san moi nhieu man",
+    "snake game 5 levels",
   ],
   alternates: {
-    canonical: "/games/snake",
+    canonical: "https://game-online-free.vercel.app/games/snake",
   },
   openGraph: {
-    title: "Snake Game Online - Play with 5 Unique Maps",
+    title: "Snake Game Online - Play Free with 5 Unique Maps",
     description:
-      "Challenge yourself with 5 unique Snake maps. Classic, Portal, Maze, and more. Chơi game rắn săn mồi miễn phí với nhiều cấp độ hấp dẫn.",
-    url: "/games/snake",
+      "Play Snake free online with 5 unique maps: Classic, Portal, Maze, Gauntlet, Chaos. Leaderboard & mobile support. Choi ran san moi mien phi.",
+    url: "https://game-online-free.vercel.app/games/snake",
+    type: "website",
     images: [
       {
         url: '/android-chrome-512x512.png',
         width: 512,
         height: 512,
-        alt: 'Snake Game - 5 Unique Maps',
+        alt: 'Snake Game - 5 Unique Maps Free Online',
       },
     ],
   },

@@ -3,33 +3,40 @@ import { JsonLd } from "@/components/json-ld"
 import { TetrisGameClient } from "./client"
 
 export const metadata: Metadata = {
-  title: "Tetris Game Online - Play Free Classic Tetris | NDL Arcade",
+  title: "Tetris Game Online - Play Free Classic Block Puzzle | NDL Arcade",
   description:
-    "Play Tetris online for free. Stack blocks, clear lines, and chase high scores in this classic puzzle game. Choi game xep hinh Tetris mien phi.",
+    "Play Tetris online for free with 10 difficulty levels from Beginner to Impossible. Stack blocks, clear lines, chase high scores. Ghost piece preview, hold piece, next piece display. No download. Choi game xep hinh Tetris mien phi 10 cap do.",
   keywords: [
     "tetris online",
-    "play tetris free",
+    "tetris free",
+    "play tetris",
     "classic tetris",
-    "tetris game",
+    "tetris game online",
+    "tetris unblocked",
     "block puzzle game",
+    "falling blocks game",
+    "tetris no download",
     "game xep hinh tetris",
     "choi tetris online",
     "tetris mien phi",
+    "game xep gach",
+    "tetris 10 levels",
   ],
   alternates: {
-    canonical: "/games/tetris",
+    canonical: "https://game-online-free.vercel.app/games/tetris",
   },
   openGraph: {
-    title: "Tetris Game Online - Play Free | NDL Arcade",
+    title: "Tetris Online - Play Free Classic Block Puzzle Game",
     description:
-      "Play classic Tetris online for free. Stack blocks, clear lines, beat your high score. Choi game xep hinh Tetris mien phi.",
-    url: "/games/tetris",
+      "Play Tetris free online with 10 difficulty levels. Ghost piece, hold feature, next piece preview. Classic block puzzle in your browser. Choi Tetris mien phi.",
+    url: "https://game-online-free.vercel.app/games/tetris",
+    type: "website",
     images: [
       {
         url: "/android-chrome-512x512.png",
         width: 512,
         height: 512,
-        alt: "Tetris Game - NDL Arcade",
+        alt: "Tetris Game - Free Online Block Puzzle",
       },
     ],
   },

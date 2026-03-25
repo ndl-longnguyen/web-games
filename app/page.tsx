@@ -4,23 +4,36 @@ import { GameCard } from "@/components/game-card"
 import { JsonLd } from "@/components/json-ld"
 
 export const metadata: Metadata = {
-  title: "NDL Arcade - Classic Retro Games Collection | Free Online",
+  title: "NDL Arcade - Play Free Online Arcade Games | Snake, Tetris, Breakout, Space Invaders",
   description:
-    "A collection of free online retro arcade games. Play Snake with 5 unique maps, and stay tuned for Tetris, Pong, and Space Invaders. Chơi game arcade cổ điển: Rắn săn mồi và nhiều trò chơi hấp dẫn khác.",
+    "Play free online arcade games instantly. Snake game with 5 unique maps, Tetris with 10 difficulty levels, Breakout brick breaker, and Space Invaders with boss battles. No download required, works on all devices. Choi game online mien phi: Ran san moi, Tetris, Breakout, Space Invaders.",
+  keywords: [
+    'free online games',
+    'arcade games free',
+    'play games online',
+    'snake game online',
+    'tetris free',
+    'breakout brick breaker',
+    'space invaders game',
+    'retro games',
+    'browser games',
+    'game online mien phi',
+  ],
   alternates: {
-    canonical: "/",
+    canonical: "https://game-online-free.vercel.app",
   },
   openGraph: {
-    title: "NDL Arcade - Free Online Retro Games Collection",
+    title: "NDL Arcade - Play Free Online Arcade Games",
     description:
-      "Play classic arcade games online for free. Snake, Tetris, Pong, and more. Chơi game rắn săn mồi và game arcade cổ điển trực tuyến miễn phí.",
-    url: "/",
+      "Play Snake, Tetris, Breakout & Space Invaders free online. Classic arcade games, no download needed. Choi game arcade co dien mien phi.",
+    url: "https://game-online-free.vercel.app",
+    type: "website",
     images: [
       {
         url: '/android-chrome-512x512.png',
         width: 512,
         height: 512,
-        alt: 'NDL Arcade Games Collection',
+        alt: 'NDL Arcade - Free Online Arcade Games Collection',
       },
     ],
   },
@@ -28,28 +41,93 @@ export const metadata: Metadata = {
 
 const jsonLd = {
   "@context": "https://schema.org",
-  "@type": "WebApplication",
+  "@type": "WebSite",
+  "@id": "https://game-online-free.vercel.app/#website",
   name: "NDL Arcade",
-  description:
-    "Free online arcade game collection including Snake, Tetris, Pong, and classic retro games.",
-  applicationCategory: "GameApplication",
-  operatingSystem: "Any",
-  offers: {
-    "@type": "Offer",
-    price: "0",
-    priceCurrency: "USD",
+  url: "https://game-online-free.vercel.app",
+  description: "Free online arcade games: Snake, Tetris, Breakout, Space Invaders. Play classic retro games instantly in your browser.",
+  inLanguage: ["en-US", "vi-VN"],
+  potentialAction: {
+    "@type": "SearchAction",
+    target: "https://game-online-free.vercel.app/?q={search_term_string}",
+    "query-input": "required name=search_term_string"
   },
-  author: {
-    "@type": "Person",
-    name: "NDL",
-  },
-  inLanguage: ["en", "vi"],
+  publisher: {
+    "@type": "Organization",
+    "@id": "https://game-online-free.vercel.app/#organization",
+    name: "NDL Arcade",
+    url: "https://game-online-free.vercel.app"
+  }
+}
+
+const gameCollectionJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  itemListElement: [
+    {
+      "@type": "ListItem",
+      position: 1,
+      item: {
+        "@type": "VideoGame",
+        name: "Snake Game",
+        description: "Classic Snake game with 5 unique maps: Classic, Portal, Maze, Gauntlet, Chaos",
+        url: "https://game-online-free.vercel.app/games/snake",
+        genre: ["Arcade", "Puzzle"],
+        gamePlatform: "Web Browser",
+        applicationCategory: "Game",
+        offers: { "@type": "Offer", price: "0", priceCurrency: "USD" }
+      }
+    },
+    {
+      "@type": "ListItem",
+      position: 2,
+      item: {
+        "@type": "VideoGame",
+        name: "Tetris",
+        description: "Classic Tetris puzzle game with 10 difficulty levels",
+        url: "https://game-online-free.vercel.app/games/tetris",
+        genre: ["Puzzle", "Arcade"],
+        gamePlatform: "Web Browser",
+        applicationCategory: "Game",
+        offers: { "@type": "Offer", price: "0", priceCurrency: "USD" }
+      }
+    },
+    {
+      "@type": "ListItem",
+      position: 3,
+      item: {
+        "@type": "VideoGame",
+        name: "Breakout",
+        description: "Brick breaker game with 10 unique levels and pipe patterns",
+        url: "https://game-online-free.vercel.app/games/pong",
+        genre: ["Arcade", "Action"],
+        gamePlatform: "Web Browser",
+        applicationCategory: "Game",
+        offers: { "@type": "Offer", price: "0", priceCurrency: "USD" }
+      }
+    },
+    {
+      "@type": "ListItem",
+      position: 4,
+      item: {
+        "@type": "VideoGame",
+        name: "Space Invaders",
+        description: "Classic alien shooter with power-ups, unlimited waves, and boss battles",
+        url: "https://game-online-free.vercel.app/games/space-invaders",
+        genre: ["Arcade", "Shooter"],
+        gamePlatform: "Web Browser",
+        applicationCategory: "Game",
+        offers: { "@type": "Offer", price: "0", priceCurrency: "USD" }
+      }
+    }
+  ]
 }
 
 export default function DashboardPage() {
   return (
     <main className="min-h-dvh bg-background flex flex-col items-center px-4 py-8 sm:py-12 gap-8 sm:gap-10 relative">
       <JsonLd data={jsonLd} />
+      <JsonLd data={gameCollectionJsonLd} />
 
       {/* Scan lines overlay */}
       <div
@@ -72,14 +150,19 @@ export default function DashboardPage() {
         >
           NDL ARCADE
         </h1>
-        <p className="font-mono text-[10px] sm:text-xs text-muted-foreground mt-3">
+        <p className="font-mono text-xs sm:text-sm text-muted-foreground mt-3 max-w-lg mx-auto">
+          Free Online Arcade Games - Play Snake, Tetris, Breakout & Space Invaders
+        </p>
+        <p className="font-mono text-[10px] sm:text-xs text-muted-foreground/70 mt-2">
           {"// choose a game to play"}
         </p>
       </header>
 
       {/* Game Grid */}
-      <section className="w-full max-w-3xl" aria-label="Available games">
-        <h2 className="sr-only">Game Selection</h2>
+      <section className="w-full max-w-3xl" aria-label="Free online arcade games collection">
+        <h2 className="font-mono text-xs text-muted-foreground mb-4 text-center uppercase tracking-wider">
+          Choose Your Game
+        </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {GAMES.map((game) => (
             <GameCard key={game.id} game={game} />

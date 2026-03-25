@@ -20,65 +20,92 @@ const _geistMono = Geist_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://game-online-free.vercel.app'),
   title: {
-    default: 'NDL Arcade - Free Online Games',
-    template: '%s | NDL Arcade',
+    default: 'NDL Arcade - Free Online Games | Play Snake, Tetris, Breakout & Space Invaders',
+    template: '%s | NDL Arcade - Free Online Games',
   },
   description:
-    'Play classic arcade games online for free. Enjoy Snake with unique maps, Tetris, Pong, and more retro games coming soon. Chơi game online miễn phí: Rắn săn mồi, Tetris, Pong và nhiều trò chơi arcade cổ điển khác.',
-  generator: 'NDL',
+    'Play free online arcade games: Snake with 5 unique maps, Tetris with 10 difficulty levels, Breakout brick breaker, and Space Invaders with boss battles. No download required. Choi game online mien phi: Ran san moi, Tetris, Breakout, Space Invaders.',
+  generator: 'Next.js',
   applicationName: 'NDL Arcade',
-  authors: [{ name: 'NDL' }],
+  referrer: 'origin-when-cross-origin',
+  authors: [{ name: 'NDL', url: 'https://game-online-free.vercel.app' }],
   creator: 'NDL',
-  publisher: 'NDL',
+  publisher: 'NDL Arcade',
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
   keywords: [
-    // General Arcade Keywords
+    // Primary Keywords - High Search Volume
     'free online games',
-    'web games',
-    'retro arcade games',
-    'classic arcade collection',
-    'browser games',
-    'HTML5 games',
-    'no download games',
-    'chơi game online miễn phí',
-    'game web hay',
-    'game arcade cổ điển',
-    // Related & Adjacent Keywords
-    'io games',
-    'casual mini games',
-    '8-bit games',
-    'cool math games style',
-    'unblocked games at school',
-    'nostalgic games',
-    'game tuổi thơ',
-    'game giải trí nhẹ nhàng',
-    'game xả stress',
-    'game chơi trên trình duyệt',
-    'game không cần tải',
-    // Snake Game
+    'play games online free',
+    'browser games no download',
+    'arcade games free',
+    'retro games online',
+    'classic games free',
+    
+    // Snake Game Keywords
     'snake game',
-    'play snake online',
+    'snake game online',
+    'play snake online free',
     'classic snake game',
-    'game rắn săn mồi',
-    'chơi game rắn săn mồi',
-    'game rắn săn mồi online',
-
-    // Tetris & Others
+    'snake io game',
+    'snake game unblocked',
+    'game ran san moi',
+    'choi game ran san moi online',
+    'ran san moi mien phi',
+    
+    // Tetris Keywords
+    'tetris game',
     'tetris online',
     'play tetris free',
-    'classic tetris',
-    'game xếp hình tetris',
-    'pong online',
-    'space invaders arcade',
-    'game bắn máy bay cổ điển',
+    'classic tetris game',
+    'tetris unblocked',
+    'block puzzle game',
+    'game xep hinh tetris',
+    'choi tetris online mien phi',
+    
+    // Breakout Keywords
+    'breakout game',
+    'brick breaker',
+    'breakout online',
+    'brick breaker game free',
+    'arkanoid game',
+    'game pha gach',
+    'choi breakout mien phi',
+    
+    // Space Invaders Keywords
+    'space invaders',
+    'space invaders online',
+    'alien shooter game',
+    'classic space invaders',
+    'space invaders free',
+    'game ban may bay',
+    'game ban alien',
+    
+    // Long-tail & Vietnamese Keywords
+    'game arcade co dien',
+    'game web hay nhat',
+    'game giai tri online',
+    'game khong can tai',
+    'game choi tren trinh duyet',
+    'game tuoi tho 8x 9x',
+    'best free browser games 2024',
+    'html5 games no flash',
+    'unblocked games at school',
+    'cool math games alternative',
   ],
   category: 'Games',
   classification: 'Game',
   robots: {
     index: true,
     follow: true,
+    nocache: false,
     googleBot: {
       index: true,
       follow: true,
+      noimageindex: false,
       'max-video-preview': -1,
       'max-image-preview': 'large',
       'max-snippet': -1,
@@ -87,34 +114,47 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    alternateLocale: 'vi_VN',
+    alternateLocale: ['vi_VN'],
     siteName: 'NDL Arcade',
-    title: 'NDL Arcade - Free Online Retro Games | Snake Game & More',
+    title: 'NDL Arcade - Play Free Online Arcade Games | Snake, Tetris, Breakout, Space Invaders',
     description:
-      'Play free retro arcade games online. Snake game with 5 unique maps including Portal Walls, Maze Runner, and Random Chaos. Choi game ran san moi mien phi.',
+      'Play classic arcade games free online. Snake with 5 maps, Tetris 10 levels, Breakout brick breaker, Space Invaders with bosses. No download, play instantly in browser.',
+    url: 'https://game-online-free.vercel.app',
     images: [
       {
         url: '/android-chrome-512x512.png',
         width: 512,
         height: 512,
-        alt: 'NDL Arcade - Free Online Games',
+        alt: 'NDL Arcade - Free Online Arcade Games Collection',
+        type: 'image/png',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'NDL Arcade - Free Online Games',
-    description:
-      'Play Snake with 5 unique maps. Free retro arcade games in your browser.',
+    site: '@NDLArcade',
     creator: '@NDL',
-    images: ['/android-chrome-512x512.png'],
+    title: 'NDL Arcade - Free Online Arcade Games',
+    description:
+      'Play Snake, Tetris, Breakout & Space Invaders free online. Classic retro arcade games in your browser.',
+    images: {
+      url: '/android-chrome-512x512.png',
+      alt: 'NDL Arcade Games',
+    },
+  },
+  verification: {
+    google: process.env.GOOGLE_SITE_VERIFICATION,
   },
   alternates: {
-    canonical: '/',
+    canonical: 'https://game-online-free.vercel.app',
     languages: {
-      'en': '/',
-      'vi': '/',
+      'en-US': 'https://game-online-free.vercel.app',
+      'vi-VN': 'https://game-online-free.vercel.app',
     },
+  },
+  other: {
+    'google-site-verification': process.env.GOOGLE_SITE_VERIFICATION || '',
+    'msvalidate.01': process.env.BING_SITE_VERIFICATION || '',
   },
   icons: {
     icon: [
