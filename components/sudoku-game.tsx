@@ -189,7 +189,7 @@ export function SudokuGame({
   const [showHint, setShowHint] = useState(false)
   const [highlightedNum, setHighlightedNum] = useState<number | null>(null)
   
-  const maxMistakes = 3
+  const maxMistakes = 15
   const timerRef = useRef<NodeJS.Timeout | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
 
@@ -395,10 +395,11 @@ export function SudokuGame({
 
   // Start game
   const handleStart = () => {
-    if (canStart && !canStart()) return
+    // Call onGameStart first - it will handle registration prompt if needed
+    onGameStart?.()
+    // If canStart returns false after onGameStart, still allow playing
     initGame()
     setIsRunning(true)
-    onGameStart?.()
   }
 
   // Get cell style
@@ -574,16 +575,9 @@ export function SudokuGame({
       {/* Mistakes indicator */}
       <div className="flex items-center gap-2">
         <span className="font-mono text-xs text-muted-foreground">Mistakes:</span>
-        <div className="flex gap-1">
-          {Array(maxMistakes).fill(null).map((_, i) => (
-            <div
-              key={i}
-              className={`w-3 h-3 rounded-full transition-colors ${
-                i < mistakes ? 'bg-destructive' : 'bg-muted'
-              }`}
-            />
-          ))}
-        </div>
+        <span className={`font-mono text-sm font-bold ${mistakes >= maxMistakes ? 'text-destructive' : mistakes > maxMistakes / 2 ? 'text-yellow-500' : 'text-foreground'}`}>
+          {mistakes} / {maxMistakes}
+        </span>
       </div>
     </div>
   )

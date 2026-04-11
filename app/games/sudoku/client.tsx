@@ -83,9 +83,9 @@ export function SudokuGameClient() {
   }, [isRegistered])
 
   const handleGameStart = useCallback(() => {
+    // Show registration prompt if not registered, but don't block game start
     if (!isRegistered) {
       setShowRegistration(true)
-      return
     }
     setScore(0)
     setTime(0)
