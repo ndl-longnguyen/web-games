@@ -83,4 +83,11 @@ export const GAMES: GameInfo[] = [
     href: "/games/space-invaders",
     available: true,
   },
+  {
+    id: "sudoku",
+    name: "Sudoku",
+    description: "Classic number puzzle. 10 difficulty levels to master.",
+    href: "/games/sudoku",
+    available: true,
+  },
 ]
