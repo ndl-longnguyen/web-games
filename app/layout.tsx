@@ -4,6 +4,7 @@ import { Analytics } from '@vercel/analytics/next'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 import { PlayerProvider } from '@/components/player-provider'
 import { PlayerRegistration } from '@/components/player-registration'
+import Script from 'next/script'
 import './globals.css'
 
 const _pressStart = Press_Start_2P({
@@ -193,6 +194,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <Script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9166964727480227"
+          crossOrigin="anonymous"
+          strategy="afterInteractive"
+        />
+      </head>
       <body className={`${_pressStart.variable} font-mono antialiased`}>
         <PlayerProvider>
           <PlayerRegistration />
