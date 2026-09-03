@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import Image from "next/image"
 import { GAMES } from "@/lib/game-data"
 import { GameCard } from "@/components/game-card"
 import { JsonLd } from "@/components/json-ld"
@@ -140,7 +141,20 @@ export default function DashboardPage() {
       />
 
       {/* Header */}
-      <header className="text-center px-2">
+      <header className="text-center px-2 flex flex-col items-center">
+        <div className="relative mb-5 group">
+          <div className="absolute -inset-1.5 rounded-full bg-gradient-to-r from-amber-500/25 via-yellow-400/35 to-amber-600/25 blur-lg opacity-80 group-hover:opacity-100 transition-all duration-500" />
+          <div className="relative rounded-full p-1 border border-amber-500/40 shadow-2xl bg-black/60 backdrop-blur-sm">
+            <Image
+              src="/logo.png"
+              alt="NDL Arcade Logo"
+              width={96}
+              height={96}
+              className="w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover shadow-inner transition-transform duration-300 group-hover:scale-105"
+              priority
+            />
+          </div>
+        </div>
         <h1
           className="font-sans text-xl sm:text-3xl md:text-5xl text-primary tracking-wider text-balance"
           style={{
@@ -171,7 +185,14 @@ export default function DashboardPage() {
       </section>
 
       {/* Footer */}
-      <footer className="font-mono text-[10px] text-muted-foreground/50 text-center mt-auto pt-8">
+      <footer className="font-mono text-[10px] text-muted-foreground/50 text-center mt-auto pt-8 flex items-center justify-center gap-2">
+        <Image
+          src="/logo.png"
+          alt="NDL Logo"
+          width={16}
+          height={16}
+          className="w-4 h-4 rounded-full opacity-70"
+        />
         <p>Built by NDL</p>
       </footer>
     </main>
