@@ -1,3 +1,4 @@
+import { SITE_URL } from "@/lib/config/site"
 import type { Metadata } from "next"
 import { JsonLd } from "@/components/json-ld"
 import { TetrisGameClient } from "./client"
@@ -23,13 +24,13 @@ export const metadata: Metadata = {
     "tetris 10 levels",
   ],
   alternates: {
-    canonical: "https://game-online-free.vercel.app/games/tetris",
+    canonical: `${SITE_URL}/games/tetris`,
   },
   openGraph: {
     title: "Tetris Online - Play Free Classic Block Puzzle Game",
     description:
       "Play Tetris free online with 10 difficulty levels. Ghost piece, hold feature, next piece preview. Classic block puzzle in your browser. Choi Tetris mien phi.",
-    url: "https://game-online-free.vercel.app/games/tetris",
+    url: `${SITE_URL}/games/tetris`,
     type: "website",
     images: [
       {

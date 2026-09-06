@@ -1,3 +1,4 @@
+import { SITE_URL } from "@/lib/config/site"
 import type { Metadata } from "next"
 import { JsonLd } from "@/components/json-ld"
 import { SudokuGameClient } from "./client"
@@ -24,13 +25,13 @@ export const metadata: Metadata = {
     "sudoku 10 levels",
   ],
   alternates: {
-    canonical: "https://game-online-free.vercel.app/games/sudoku",
+    canonical: `${SITE_URL}/games/sudoku`,
   },
   openGraph: {
     title: "Sudoku Online - Play Free Number Puzzle Game",
     description:
       "Play Sudoku free online with 10 difficulty levels. Notes, hints, mistake tracking. Classic logic puzzle in your browser. Choi Sudoku mien phi.",
-    url: "https://game-online-free.vercel.app/games/sudoku",
+    url: `${SITE_URL}/games/sudoku`,
     type: "website",
     images: [
       {

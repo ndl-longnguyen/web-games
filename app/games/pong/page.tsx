@@ -1,3 +1,4 @@
+import { SITE_URL } from "@/lib/config/site"
 import type { Metadata } from "next"
 import { JsonLd } from "@/components/json-ld"
 import { PongGameClient } from "./client"
@@ -23,13 +24,13 @@ export const metadata: Metadata = {
     "breakout 10 levels",
   ],
   alternates: {
-    canonical: "https://game-online-free.vercel.app/games/pong",
+    canonical: `${SITE_URL}/games/pong`,
   },
   openGraph: {
     title: "Breakout Online - Free Brick Breaker Game with 10 Levels",
     description:
       "Play Breakout free online. 10 unique levels, pipe patterns, explosive bricks, combo system. Classic brick breaker in your browser. Choi game pha gach mien phi.",
-    url: "https://game-online-free.vercel.app/games/pong",
+    url: `${SITE_URL}/games/pong`,
     type: "website",
     images: [
       {

@@ -1,3 +1,4 @@
+import { SITE_URL } from "@/lib/config/site"
 import type { Metadata } from "next"
 import Link from "next/link"
 import { SNAKE_MAPS } from "@/lib/game-data"
@@ -26,13 +27,13 @@ export const metadata: Metadata = {
     "snake game 5 levels",
   ],
   alternates: {
-    canonical: "https://game-online-free.vercel.app/games/snake",
+    canonical: `${SITE_URL}/games/snake`,
   },
   openGraph: {
     title: "Snake Game Online - Play Free with 5 Unique Maps",
     description:
       "Play Snake free online with 5 unique maps: Classic, Portal, Maze, Gauntlet, Chaos. Leaderboard & mobile support. Choi ran san moi mien phi.",
-    url: "https://game-online-free.vercel.app/games/snake",
+    url: `${SITE_URL}/games/snake`,
     type: "website",
     images: [
       {

@@ -1,3 +1,4 @@
+import { SITE_URL } from "@/lib/config/site"
 import type { Metadata } from "next"
 import { JsonLd } from "@/components/json-ld"
 import { SpaceInvadersGameClient } from "./client"
@@ -23,13 +24,13 @@ export const metadata: Metadata = {
     "space invaders power ups",
   ],
   alternates: {
-    canonical: "https://game-online-free.vercel.app/games/space-invaders",
+    canonical: `${SITE_URL}/games/space-invaders`,
   },
   openGraph: {
     title: "Space Invaders Online - Free Alien Shooter with Boss Battles",
     description:
       "Play Space Invaders free online. Power-ups, weapon upgrades, epic boss battles. Classic arcade shooter in your browser. Choi game ban may bay mien phi.",
-    url: "https://game-online-free.vercel.app/games/space-invaders",
+    url: `${SITE_URL}/games/space-invaders`,
     type: "website",
     images: [
       {

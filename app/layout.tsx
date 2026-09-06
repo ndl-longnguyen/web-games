@@ -1,3 +1,4 @@
+import { SITE_URL } from "@/lib/config/site"
 import type { Metadata, Viewport } from 'next'
 import { Press_Start_2P, Geist_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
@@ -19,7 +20,7 @@ const _geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://game-online-free.vercel.app'),
+  metadataBase: new URL(SITE_URL),
   title: {
     default: 'NDL Arcade - Free Online Games | Play Snake, Tetris, Breakout & Space Invaders',
     template: '%s | NDL Arcade - Free Online Games',
@@ -29,7 +30,7 @@ export const metadata: Metadata = {
   generator: 'Next.js',
   applicationName: 'NDL Arcade',
   referrer: 'origin-when-cross-origin',
-  authors: [{ name: 'NDL', url: 'https://game-online-free.vercel.app' }],
+  authors: [{ name: 'NDL', url: SITE_URL }],
   creator: 'NDL',
   publisher: 'NDL Arcade',
   formatDetection: {
@@ -120,7 +121,7 @@ export const metadata: Metadata = {
     title: 'NDL Arcade - Play Free Online Arcade Games | Snake, Tetris, Breakout, Space Invaders',
     description:
       'Play classic arcade games free online. Snake with 5 maps, Tetris 10 levels, Breakout brick breaker, Space Invaders with bosses. No download, play instantly in browser.',
-    url: 'https://game-online-free.vercel.app',
+    url: SITE_URL,
     images: [
       {
         url: '/android-chrome-512x512.png',
@@ -147,10 +148,10 @@ export const metadata: Metadata = {
     google: process.env.GOOGLE_SITE_VERIFICATION,
   },
   alternates: {
-    canonical: 'https://game-online-free.vercel.app',
+    canonical: SITE_URL,
     languages: {
-      'en-US': 'https://game-online-free.vercel.app',
-      'vi-VN': 'https://game-online-free.vercel.app',
+      'en-US': SITE_URL,
+      'vi-VN': SITE_URL,
     },
   },
   other: {
@@ -195,6 +196,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        <meta name="google-adsense-account" content="ca-pub-9166964727480227" />
         <Script
           async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9166964727480227"

@@ -1,5 +1,7 @@
+import { SITE_URL, MAIN_SITE_URL } from "@/lib/config/site"
 import type { Metadata } from "next"
 import Image from "next/image"
+import Link from "next/link"
 import { GAMES } from "@/lib/game-data"
 import { GameCard } from "@/components/game-card"
 import { JsonLd } from "@/components/json-ld"
@@ -21,13 +23,13 @@ export const metadata: Metadata = {
     'game online mien phi',
   ],
   alternates: {
-    canonical: "https://game-online-free.vercel.app",
+    canonical: SITE_URL,
   },
   openGraph: {
     title: "NDL Arcade - Play Free Online Arcade Games",
     description:
       "Play Snake, Tetris, Breakout & Space Invaders free online. Classic arcade games, no download needed. Choi game arcade co dien mien phi.",
-    url: "https://game-online-free.vercel.app",
+    url: SITE_URL,
     type: "website",
     images: [
       {
@@ -43,21 +45,21 @@ export const metadata: Metadata = {
 const jsonLd = {
   "@context": "https://schema.org",
   "@type": "WebSite",
-  "@id": "https://game-online-free.vercel.app/#website",
+  "@id": `${SITE_URL}/#website`,
   name: "NDL Arcade",
-  url: "https://game-online-free.vercel.app",
+  url: SITE_URL,
   description: "Free online arcade games: Snake, Tetris, Breakout, Space Invaders. Play classic retro games instantly in your browser.",
   inLanguage: ["en-US", "vi-VN"],
   potentialAction: {
     "@type": "SearchAction",
-    target: "https://game-online-free.vercel.app/?q={search_term_string}",
+    target: `${SITE_URL}/?q={search_term_string}`,
     "query-input": "required name=search_term_string"
   },
   publisher: {
     "@type": "Organization",
-    "@id": "https://game-online-free.vercel.app/#organization",
+    "@id": `${SITE_URL}/#organization`,
     name: "NDL Arcade",
-    url: "https://game-online-free.vercel.app"
+    url: SITE_URL
   }
 }
 
@@ -72,7 +74,7 @@ const gameCollectionJsonLd = {
         "@type": "VideoGame",
         name: "Snake Game",
         description: "Classic Snake game with 5 unique maps: Classic, Portal, Maze, Gauntlet, Chaos",
-        url: "https://game-online-free.vercel.app/games/snake",
+        url: `${SITE_URL}/games/snake`,
         genre: ["Arcade", "Puzzle"],
         gamePlatform: "Web Browser",
         applicationCategory: "Game",
@@ -86,7 +88,7 @@ const gameCollectionJsonLd = {
         "@type": "VideoGame",
         name: "Tetris",
         description: "Classic Tetris puzzle game with 10 difficulty levels",
-        url: "https://game-online-free.vercel.app/games/tetris",
+        url: `${SITE_URL}/games/tetris`,
         genre: ["Puzzle", "Arcade"],
         gamePlatform: "Web Browser",
         applicationCategory: "Game",
@@ -100,7 +102,7 @@ const gameCollectionJsonLd = {
         "@type": "VideoGame",
         name: "Breakout",
         description: "Brick breaker game with 10 unique levels and pipe patterns",
-        url: "https://game-online-free.vercel.app/games/pong",
+        url: `${SITE_URL}/games/pong`,
         genre: ["Arcade", "Action"],
         gamePlatform: "Web Browser",
         applicationCategory: "Game",
@@ -114,7 +116,7 @@ const gameCollectionJsonLd = {
         "@type": "VideoGame",
         name: "Space Invaders",
         description: "Classic alien shooter with power-ups, unlimited waves, and boss battles",
-        url: "https://game-online-free.vercel.app/games/space-invaders",
+        url: `${SITE_URL}/games/space-invaders`,
         genre: ["Arcade", "Shooter"],
         gamePlatform: "Web Browser",
         applicationCategory: "Game",
@@ -184,16 +186,78 @@ export default function DashboardPage() {
         </div>
       </section>
 
+      {/* Informational & SEO Content Section for Compliance */}
+      <section className="w-full max-w-3xl mt-12 pt-10 border-t border-border/40 font-mono text-xs text-muted-foreground space-y-8">
+        <div>
+          <h2 className="text-sm sm:text-base font-bold text-primary uppercase tracking-wider mb-3">
+            About NDL Arcade
+          </h2>
+          <p className="leading-relaxed text-foreground/80">
+            NDL Arcade is a curated collection of classic retro browser games engineered with modern HTML5 Canvas, Web Audio, and responsive touch controls. All games run 100% in your web browser with zero installation, zero downloads, and zero plugins required. Whether you are reliving the golden era of 8-bit gaming or challenging global players on real-time leaderboards, NDL Arcade provides an instant, lightweight gaming experience.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <div className="p-4 rounded-lg border border-border/40 bg-card/30 space-y-2">
+            <h3 className="font-bold text-foreground text-xs uppercase tracking-wide text-primary">
+              Classic Retro Lineup
+            </h3>
+            <ul className="space-y-1.5 list-disc list-inside text-[11px] leading-relaxed text-foreground/75">
+              <li><strong>Snake Game:</strong> 5 distinct maps including Portal, Maze, Gauntlet, and Chaos.</li>
+              <li><strong>Tetris:</strong> 10 difficulty levels with instant hard drop and hold queue.</li>
+              <li><strong>Breakout:</strong> 10 challenging brick patterns and paddle power-ups.</li>
+              <li><strong>Space Invaders:</strong> Unlimited waves, mystery UFOs, and boss battles.</li>
+              <li><strong>Sudoku:</strong> Logic puzzle generation with multiple difficulty presets.</li>
+            </ul>
+          </div>
+
+          <div className="p-4 rounded-lg border border-border/40 bg-card/30 space-y-2">
+            <h3 className="font-bold text-foreground text-xs uppercase tracking-wide text-primary">
+              Universal Controls
+            </h3>
+            <ul className="space-y-1.5 list-disc list-inside text-[11px] leading-relaxed text-foreground/75">
+              <li><strong>Desktop / Keyboard:</strong> Arrow Keys or WASD for direction, Spacebar for action / drop, Esc or P for pause.</li>
+              <li><strong>Mobile / Tablet:</strong> Intuitive on-screen D-pad and swipe gestures.</li>
+              <li><strong>Audio:</strong> Toggle chiptune sound effects and retro background audio anytime.</li>
+              <li><strong>Leaderboard:</strong> Instant score submission with global rankings.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div className="p-4 rounded-lg border border-border/40 bg-card/20 space-y-2">
+          <h3 className="font-bold text-foreground text-xs uppercase tracking-wide text-primary">
+            Frequently Asked Questions (FAQ)
+          </h3>
+          <div className="space-y-2 text-[11px] leading-relaxed text-foreground/75">
+            <p><strong>Q: Are all games free to play?</strong><br />Yes, every game on NDL Arcade is completely free with no subscriptions or paywalls.</p>
+            <p><strong>Q: Can I play on mobile devices?</strong><br />Yes, all arcade games are optimized for responsive touch displays on iOS and Android smartphones.</p>
+            <p><strong>Q: How does score saving work?</strong><br />Your high scores are recorded locally on your device and submitted to the global hall of fame if connected online.</p>
+          </div>
+        </div>
+      </section>
+
       {/* Footer */}
-      <footer className="font-mono text-[10px] text-muted-foreground/50 text-center mt-auto pt-8 flex items-center justify-center gap-2">
-        <Image
-          src="/logo.png"
-          alt="NDL Logo"
-          width={16}
-          height={16}
-          className="w-4 h-4 rounded-full opacity-70"
-        />
-        <p>Built by NDL</p>
+      <footer className="w-full max-w-3xl font-mono text-xs text-muted-foreground/70 text-center mt-auto pt-10 pb-6 border-t border-border/30 space-y-3">
+        <div className="flex flex-wrap items-center justify-center gap-4 text-[11px]">
+          <Link href={MAIN_SITE_URL} className="hover:text-primary transition-colors underline-offset-4 hover:underline">
+            NDL Home
+          </Link>
+          <span>•</span>
+          <Link href={`${MAIN_SITE_URL}/blog`} className="hover:text-primary transition-colors underline-offset-4 hover:underline">
+            Engineering Blog
+          </Link>
+          <span>•</span>
+          <Link href={`${MAIN_SITE_URL}/privacy-policy`} className="hover:text-primary transition-colors underline-offset-4 hover:underline">
+            Privacy Policy
+          </Link>
+          <span>•</span>
+          <Link href={`${MAIN_SITE_URL}/terms`} className="hover:text-primary transition-colors underline-offset-4 hover:underline">
+            Terms of Service
+          </Link>
+        </div>
+        <p className="text-[10px] text-muted-foreground/50">
+          © {new Date().getFullYear()} NDL Arcade — Part of the <a href={MAIN_SITE_URL} className="text-primary hover:underline">{MAIN_SITE_URL.replace("https://", "")}</a> ecosystem.
+        </p>
       </footer>
     </main>
   )
