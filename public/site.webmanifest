@@ -1,7 +1,7 @@
 {
-  "name": "NDL Arcade - Free Online Games",
+  "name": "NDL Arcade",
   "short_name": "NDL Arcade",
-  "description": "Play classic arcade games online for free",
+  "description": "Play classic arcade games online for free - Snake, Tetris, Breakout, Space Invaders",
   "icons": [
     {
       "src": "/android-chrome-192x192.png",

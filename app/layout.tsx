@@ -22,9 +22,10 @@ const _geistMono = Geist_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: 'NDL Arcade - Free Online Games | Play Snake, Tetris, Breakout & Space Invaders',
-    template: '%s | NDL Arcade - Free Online Games',
+    default: 'NDL Arcade – Free Online Classic Retro Games',
+    template: '%s | NDL Arcade',
   },
+  manifest: '/site.webmanifest',
   description:
     'Play free online arcade games: Snake with 5 unique maps, Tetris with 10 difficulty levels, Breakout brick breaker, and Space Invaders with boss battles. No download required. Choi game online mien phi: Ran san moi, Tetris, Breakout, Space Invaders.',
   generator: 'Next.js',
@@ -188,6 +189,24 @@ export const viewport: Viewport = {
   maximumScale: 5,
 }
 
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  '@id': `${SITE_URL}/#website`,
+  url: SITE_URL,
+  name: 'NDL Arcade',
+  alternateName: [
+    'Arcade Games',
+    'arcade.ndlong.site',
+    'NDL Retro Games',
+  ],
+  description: 'Play classic arcade games online for free - Snake, Tetris, Breakout, Space Invaders.',
+  publisher: {
+    '@type': 'Person',
+    name: 'Nguyen Dai Long (NDL)',
+  },
+}
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -202,6 +221,10 @@ export default function RootLayout({
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9166964727480227"
           crossOrigin="anonymous"
           strategy="afterInteractive"
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       </head>
       <body className={`${_pressStart.variable} font-mono antialiased`}>
